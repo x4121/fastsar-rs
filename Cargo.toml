@@ -1,0 +1,25 @@
+[package]
+name = "skastsar"
+version = "0.1.0"
+authors = ["Armin Grodon <me@armingrodon.de>"]
+edition = "2018"
+
+[dependencies]
+config = "~0.10"
+futures = "~0.3"
+rusoto_core = "~0.46"
+rusoto_sts = "~0.46"
+serde_derive = "~1.0"
+serde_json = "~1.0"
+shellexpand = "~2.1"
+skim = "~0.9"
+structopt = "~0.3"
+termcolor = "~1.1"
+
+[dependencies.serde]
+features = ["derive"]
+version = "~1.0"
+
+[dependencies.tokio]
+features = ["full"]
+version = "~1.0"
