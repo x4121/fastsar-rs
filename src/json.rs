@@ -1,33 +1,21 @@
-extern crate serde;
-#[macro_use]
-extern crate serde_derive;
 extern crate serde_json;
+use serde::{Deserialize, Serialize};
+use std::fs::File;
+use std::io;
+use std::io::prelude::*;
+use std::path::PathBuf;
 
-#[derive(Serialize, Deserialize)]
-struct T {
-    name: String,
-    id: String,
-    roles: Vec<String>,
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct Account {
+    pub name: String,
+    pub id: String,
+    pub roles: Vec<String>,
 }
 
-fn main() {
-    let json_str = r#"
-    [
-    {
-        "name": "admin",
-        "id": "547382574378",
-        "roles": ["ryte-user-admin"]
-    },
-    {
-        "name": "production-new",
-        "id": "338378888882",
-        "roles": ["OrganizationAccountAccessRole"]
-    }
-    ]
-    "#;
-    let res: Vec<T> = serde_json::from_str(json_str).unwrap();
-    println!(
-        "name: {}, id: {}, role: {}",
-        res[0].name, res[0].id, res[0].roles[0]
-    )
+pub fn read_config(path: &PathBuf) -> Result<Vec<Account>, io::Error> {
+    let mut file = File::open(path)?;
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)?;
+    let res: Vec<Account> = serde_json::from_str(&mut contents)?;
+    Ok(res)
 }

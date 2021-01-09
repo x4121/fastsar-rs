@@ -507,24 +507,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "fastsar-rs"
-version = "0.1.0"
-dependencies = [
- "config",
- "futures",
- "rusoto_core",
- "rusoto_sts",
- "serde 1.0.118",
- "serde_derive",
- "serde_json",
- "shellexpand",
- "skim",
- "structopt",
- "termcolor",
- "tokio",
-]
-
-[[package]]
 name = "fnv"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1609,6 +1591,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "16f1d0fef1604ba8f7a073c7e701f213e056707210e9020af4528e0101ce11a6"
 dependencies = [
  "libc",
+]
+
+[[package]]
+name = "skastsar"
+version = "0.1.0"
+dependencies = [
+ "config",
+ "futures",
+ "rusoto_core",
+ "rusoto_sts",
+ "serde 1.0.118",
+ "serde_derive",
+ "serde_json",
+ "shellexpand",
+ "skim",
+ "structopt",
+ "termcolor",
+ "tokio",
 ]
 
 [[package]]

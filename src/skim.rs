@@ -1,27 +1,30 @@
 extern crate skim;
+use crate::json::Account;
 use skim::prelude::*;
 use std::io::Cursor;
 
-pub fn main() {
-    let options = SkimOptionsBuilder::default()
-        .header(Some("Account:"))
-        .multi(true)
+pub fn get_selection(header: &String, options: &Vec<String>) -> Option<usize> {
+    let skim_options = SkimOptionsBuilder::default()
+        .header(Some(&header))
         .build()
         .unwrap();
 
-    let input = "aaaaa\nbbbb\nccc".to_string();
+    let items = SkimItemReader::default().of_bufread(Cursor::new(options.join("\n")));
 
-    // `SkimItemReader` is a helper to turn any `BufRead` into a stream of `SkimItem`
-    // `SkimItem` was implemented for `AsRef<str>` by default
-    let item_reader = SkimItemReader::default();
-    let items = item_reader.of_bufread(Cursor::new(input));
+    let res: Option<usize> = Skim::run_with(&skim_options, Some(items))
+        .map(|out| {
+            let item = &out.selected_items[0];
+            options.iter().position(|e| e == &item.output())
+        })
+        .unwrap_or_else(|| None);
+    res
+}
 
-    // `run_with` would read and show items from the stream
-    let selected_items = Skim::run_with(&options, Some(items))
-        .map(|out| out.selected_items)
-        .unwrap_or_else(|| Vec::new());
+pub fn select_account(mut accounts: Vec<Account>) -> Option<Account> {
+    let account_names: &Vec<String> = &accounts.clone().into_iter().map(|e| e.name).collect();
+    get_selection(&String::from("Accounts:"), account_names).map(|i| accounts.remove(i))
+}
 
-    for item in selected_items.iter() {
-        print!("{}{}", item.output(), "\n");
-    }
+pub fn select_role(mut roles: Vec<String>) -> Option<String> {
+    get_selection(&String::from("Roles:"), &roles).map(|i| roles.remove(i))
 }

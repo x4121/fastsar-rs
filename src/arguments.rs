@@ -13,22 +13,18 @@ pub struct Arguments {
     config_path: PathBuf,
 
     #[structopt(short = "s", long = "shell")]
-    pub shell: str,
+    pub shell: Option<String>,
 
     #[structopt(short = "r", long = "region")]
-    pub region: str,
+    pub region: Option<String>,
 
     #[structopt(short = "a", long = "account")]
-    pub account: str,
+    pub account: Option<String>,
 }
 
 impl Arguments {
-    pub fn get_groups_path(&self) -> PathBuf {
-        Arguments::tilde(&self.groups_path)
-    }
-
-    pub fn get_toml_path(&self) -> PathBuf {
-        Arguments::tilde(&self.toml_path)
+    pub fn get_config_path(&self) -> PathBuf {
+        Arguments::tilde(&self.config_path)
     }
 
     fn tilde(path: &PathBuf) -> PathBuf {
