@@ -16,30 +16,44 @@ async fn main() {
     let arguments: Arguments = Arguments::from_args();
     let shell = shell::get_shell(&arguments.shell);
     println!("{:#?}", arguments);
+    let account: Option<Account> = select_account(&arguments);
+    let role: Option<String> = match &account {
+        Some(a) => select_role(&a),
+        _ => None,
+    };
+    let credentials = match (account, role) {
+        (Some(a), Some(r)) => {
+            let id = a.id;
+            match aws::assume_role(&id, &r).await {
+                Ok(credentials) => Some(credentials),
+                _ => None,
+            }
+        }
+        _ => None,
+    };
+
+    match credentials {
+        Some(c) => print_credentials(&shell, &c),
+        _ => (),
+    };
+}
+
+fn select_account(arguments: &Arguments) -> Option<Account> {
     let mut accounts: Vec<Account> = json::read_config(&arguments.get_config_path()).unwrap();
-    let account: Option<Account> = match accounts.len() {
+    match accounts.len() {
         0 => None,
         1 => Some(accounts.remove(0)),
         _ => skim::select_account(accounts),
-    };
-    account.map(|a| {
-        let id = a.id;
-        let mut roles: Vec<String> = a.roles;
-        let role: Option<String> = match roles.len() {
-            0 => None,
-            1 => Some(roles.remove(0)),
-            _ => skim::select_role(roles),
-        };
+    }
+}
 
-        role.map(|r| {
-            println!("{:?} - {:?}", &id, &r);
-            let x: Result<Credentials, String> = aws::assume_role(&id, &r);
-            match aws::assume_role(&id, &r) {
-                Ok(credentials) => print_credentials(&shell, &credentials),
-                _ => (),
-            };
-        })
-    });
+fn select_role(account: &Account) -> Option<String> {
+    let mut roles: Vec<String> = account.clone().roles;
+    match roles.len() {
+        0 => None,
+        1 => Some(roles.remove(0)),
+        _ => skim::select_role(roles),
+    }
 }
 
 fn set_credentials(credentials: &Credentials) {
