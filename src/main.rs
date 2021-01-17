@@ -1,5 +1,6 @@
 use crate::arguments::Arguments;
 use json::Account;
+use rusoto_core::Region;
 use rusoto_sts::Credentials;
 use shell::Shell;
 use std::env;
@@ -15,16 +16,19 @@ mod skim;
 async fn main() {
     let arguments: Arguments = Arguments::from_args();
     let shell = shell::get_shell(&arguments.shell);
+    let region: Region = aws::get_region(&arguments.region);
+
     println!("{:#?}", arguments);
     let account: Option<Account> = select_account(&arguments);
     let role: Option<String> = match &account {
-        Some(a) => select_role(&a),
+        Some(a) => select_role(&a, &arguments),
         _ => None,
     };
+    println!("account: {:?}, role: {:?}, region: {:?}", &account, &role, &region);
     let credentials = match (account, role) {
         (Some(a), Some(r)) => {
             let id = a.id;
-            match aws::assume_role(&id, &r).await {
+            match aws::assume_role(&id, &r, region).await {
                 Ok(credentials) => Some(credentials),
                 _ => None,
             }
@@ -40,19 +44,33 @@ async fn main() {
 
 fn select_account(arguments: &Arguments) -> Option<Account> {
     let mut accounts: Vec<Account> = json::read_config(&arguments.get_config_path()).unwrap();
-    match accounts.len() {
-        0 => None,
-        1 => Some(accounts.remove(0)),
-        _ => skim::select_account(accounts),
+    match &arguments.account {
+        Some(account) => {
+            let account: Vec<Account> = accounts
+                .iter()
+                .filter(|&a| &a.name == account)
+                .cloned()
+                .collect();
+            account.first().cloned()
+        }
+        _ => match accounts.len() {
+            0 => None,
+            1 => Some(accounts.remove(0)),
+            _ => skim::select_account(accounts),
+        },
     }
 }
 
-fn select_role(account: &Account) -> Option<String> {
+fn select_role(account: &Account, arguments: &Arguments) -> Option<String> {
     let mut roles: Vec<String> = account.clone().roles;
-    match roles.len() {
-        0 => None,
-        1 => Some(roles.remove(0)),
-        _ => skim::select_role(roles),
+    match &arguments.role {
+        Some(role) if roles.iter().any(|r| r == role) => Some(role.to_string()),
+        Some(_) => None,
+        _ => match roles.len() {
+            0 => None,
+            1 => Some(roles.remove(0)),
+            _ => skim::select_role(roles),
+        },
     }
 }
 

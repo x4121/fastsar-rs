@@ -12,13 +12,16 @@ pub struct Arguments {
     )]
     config_path: PathBuf,
 
-    #[structopt(short = "s", long = "shell")]
+    #[structopt(short, long)]
     pub shell: Option<String>,
 
-    #[structopt(short = "r", long = "region")]
+    #[structopt(short = "R", long)]
     pub region: Option<String>,
 
-    #[structopt(short = "a", long = "account")]
+    #[structopt(short, long)]
+    pub role: Option<String>,
+
+    #[structopt(short, long)]
     pub account: Option<String>,
 }
 

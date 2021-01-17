@@ -11,13 +11,13 @@ pub fn get_selection(header: &String, options: &Vec<String>) -> Option<usize> {
 
     let items = SkimItemReader::default().of_bufread(Cursor::new(options.join("\n")));
 
-    let res: Option<usize> = Skim::run_with(&skim_options, Some(items))
-        .map(|out| {
+    match Skim::run_with(&skim_options, Some(items)) {
+        Some(out) if out.final_event != Event::EvActAbort => {
             let item = &out.selected_items[0];
             options.iter().position(|e| e == &item.output())
-        })
-        .unwrap_or_else(|| None);
-    res
+        }
+        _ => None
+    }
 }
 
 pub fn select_account(mut accounts: Vec<Account>) -> Option<Account> {
