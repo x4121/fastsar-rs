@@ -24,8 +24,12 @@ pub struct Arguments {
     #[structopt(short, long)]
     pub account: Option<String>,
 
-    #[structopt(short = "x", long, about = "Execute command after assuming role instead of printing set-env statements")]
-    pub exec: Option<String>
+    #[structopt(
+        short = "x",
+        long,
+        about = "Execute command after assuming role instead of printing set-env statements"
+    )]
+    pub exec: Option<String>,
 }
 
 impl Arguments {

@@ -25,7 +25,10 @@ async fn main() {
         Some(a) => select_role(&a, &arguments),
         _ => None,
     };
-    println!("account: {:?}, role: {:?}, region: {:?}", &account, &role, &region);
+    println!(
+        "account: {:?}, role: {:?}, region: {:?}",
+        &account, &role, &region
+    );
     let credentials = match (account, role) {
         (Some(a), Some(r)) => {
             let id = a.id;
@@ -41,7 +44,7 @@ async fn main() {
         (Some(c), Some(x)) => {
             set_credentials(&c);
             let _ = Exec::shell(&x).join();
-        },
+        }
         (Some(c), None) => print_credentials(&shell, &c),
         _ => (),
     };
