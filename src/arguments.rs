@@ -12,10 +12,10 @@ pub struct Arguments {
     )]
     config_path: PathBuf,
 
-    #[structopt(short, long)]
+    #[structopt(short, long, about = "Overwrite shell detection")]
     pub shell: Option<String>,
 
-    #[structopt(short = "R", long)]
+    #[structopt(short = "R", long, about = "Overwrite default region")]
     pub region: Option<String>,
 
     #[structopt(short, long)]
@@ -23,6 +23,9 @@ pub struct Arguments {
 
     #[structopt(short, long)]
     pub account: Option<String>,
+
+    #[structopt(short = "x", long, about = "Execute command after assuming role instead of printing set-env statements")]
+    pub exec: Option<String>
 }
 
 impl Arguments {

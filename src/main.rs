@@ -5,6 +5,7 @@ use rusoto_sts::Credentials;
 use shell::Shell;
 use std::env;
 use structopt::StructOpt;
+use subprocess::Exec;
 
 mod arguments;
 mod aws;
@@ -36,8 +37,12 @@ async fn main() {
         _ => None,
     };
 
-    match credentials {
-        Some(c) => print_credentials(&shell, &c),
+    match (credentials, arguments.exec) {
+        (Some(c), Some(x)) => {
+            set_credentials(&c);
+            let _ = Exec::shell(&x).join();
+        },
+        (Some(c), None) => print_credentials(&shell, &c),
         _ => (),
     };
 }
