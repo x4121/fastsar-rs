@@ -53,14 +53,14 @@ async fn main() {
 fn select_account(arguments: &Arguments) -> Option<Account> {
     let mut accounts: Vec<Account> = json::read_config(&arguments.get_config_path()).unwrap();
     match &arguments.account {
-        Some(account) => {
-            let account: Vec<Account> = accounts
+        Some(account) => 
+            accounts
                 .iter()
-                .filter(|&a| &a.name == account)
+                .filter(|&a| &a.id == account)
                 .cloned()
-                .collect();
-            account.first().cloned()
-        }
+                .collect::<Vec<Account>>()
+                .first()
+                .cloned(),
         _ => match accounts.len() {
             0 => None,
             1 => Some(accounts.remove(0)),
