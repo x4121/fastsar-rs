@@ -1,3 +1,4 @@
+use crate::arguments::Arguments;
 use rusoto_core::Region;
 use rusoto_sts::{AssumeRoleRequest, Credentials, Sts, StsClient};
 use std::str::FromStr;
@@ -12,10 +13,13 @@ pub async fn assume_role(
     account: &String,
     role: &String,
     region: Region,
+    arguments: &Arguments,
 ) -> Result<Credentials, String> {
     let request = AssumeRoleRequest {
         role_arn: format!("arn:aws:iam::{}:role/{}", account, role),
         role_session_name: String::from(SESSION_NAME),
+        serial_number: arguments.mfa_id.clone(),
+        token_code: arguments.mfa_token.clone(),
         ..AssumeRoleRequest::default()
     };
     let client = StsClient::new(region);

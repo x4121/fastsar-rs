@@ -12,10 +12,12 @@ pub struct Arguments {
     )]
     config_path: PathBuf,
 
-    #[structopt(short, long, about = "Overwrite shell detection")]
+    /// Override detected shell
+    #[structopt(short, long)]
     pub shell: Option<String>,
 
-    #[structopt(short = "R", long, about = "Overwrite default region")]
+    /// Override default region
+    #[structopt(short = "R", long)]
     pub region: Option<String>,
 
     #[structopt(short, long)]
@@ -24,11 +26,15 @@ pub struct Arguments {
     #[structopt(short, long)]
     pub account: Option<String>,
 
-    #[structopt(
-        short = "x",
-        long,
-        about = "Execute command after assuming role instead of printing set-env statements"
-    )]
+    /// MFA serial number (ARN)
+    #[structopt(short, long)]
+    pub mfa_id: Option<String>,
+
+    #[structopt(short = "t", long)]
+    pub mfa_token: Option<String>,
+
+    /// Execute command after assuming role instead of printing set-env statements
+    #[structopt(short = "x", long)]
     pub exec: Option<String>,
 }
 

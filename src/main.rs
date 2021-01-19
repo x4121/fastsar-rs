@@ -32,7 +32,7 @@ async fn main() {
     let credentials = match (account, role) {
         (Some(a), Some(r)) => {
             let id = a.id;
-            match aws::assume_role(&id, &r, region).await {
+            match aws::assume_role(&id, &r, region, &arguments).await {
                 Ok(credentials) => Some(credentials),
                 _ => None,
             }
@@ -53,14 +53,13 @@ async fn main() {
 fn select_account(arguments: &Arguments) -> Option<Account> {
     let mut accounts: Vec<Account> = json::read_config(&arguments.get_config_path()).unwrap();
     match &arguments.account {
-        Some(account) => 
-            accounts
-                .iter()
-                .filter(|&a| &a.id == account)
-                .cloned()
-                .collect::<Vec<Account>>()
-                .first()
-                .cloned(),
+        Some(account) => accounts
+            .iter()
+            .filter(|&a| &a.id == account)
+            .cloned()
+            .collect::<Vec<Account>>()
+            .first()
+            .cloned(),
         _ => match accounts.len() {
             0 => None,
             1 => Some(accounts.remove(0)),
