@@ -1,4 +1,6 @@
+use crate::error::Error;
 use std::env;
+use std::str::FromStr;
 
 #[derive(PartialEq, Debug)]
 pub enum Shell {
@@ -6,27 +8,42 @@ pub enum Shell {
     Bash,
 }
 
-fn from_str(s: &str) -> Shell {
-    match s {
-        "fish" => Shell::Fish,
-        _ => Shell::Bash,
+impl Default for Shell {
+    fn default() -> Self {
+        Shell::Bash
+    }
+}
+
+impl FromStr for Shell {
+    type Err = ();
+
+    fn from_str(shell: &str) -> Result<Self, Self::Err> {
+        match shell {
+            "fish" => Ok(Shell::Fish),
+            _ => Ok(Shell::default()),
+        }
     }
 }
 
 pub fn get_shell(preselect: &Option<String>) -> Shell {
     match preselect {
-        Some(shell) => from_str(shell.as_str()),
+        Some(shell) => Shell::from_str(shell.as_str()).unwrap(),
         _ => match env::var("SHELL") {
-            Ok(shell) => from_str(shell.split("/").last().unwrap()),
-            _ => from_str(""),
+            Ok(shell) => Shell::from_str(shell.split("/").last().unwrap()).unwrap(),
+            _ => Shell::default(),
         },
     }
 }
 
-pub fn export_string(shell: &Shell, var: &str, val: &String) -> String {
-    match shell {
-        Shell::Fish => format!("set -gx {} {};", var, val),
-        Shell::Bash => format!("export {}={}", var, val),
+pub fn export_string(shell: &Shell, var: &str, val: &String) -> Result<String, Error> {
+    if var.is_empty() || val.is_empty() {
+        Err(Error::InvalidSetEnv)
+    } else {
+        let string = match shell {
+            Shell::Fish => format!("set -gx {} {};", var, val),
+            Shell::Bash => format!("export {}={}", var, val),
+        };
+        Ok(string)
     }
 }
 
@@ -36,9 +53,9 @@ mod tests {
 
     #[test]
     fn reading_from_string() {
-        assert_eq!(Shell::Bash, from_str("bash"));
-        assert_eq!(Shell::Fish, from_str("fish"));
-        assert_eq!(Shell::Bash, from_str("zsh")); // TODO: replace with quickcheck
+        assert_eq!(Shell::Bash, Shell::from_str("bash").unwrap());
+        assert_eq!(Shell::Fish, Shell::from_str("fish").unwrap());
+        assert_eq!(Shell::default(), Shell::from_str("zsh").unwrap()); // TODO: replace with quickcheck
     }
 
     #[test]
@@ -47,6 +64,8 @@ mod tests {
         assert_eq!(Shell::Fish, get_shell(&None));
         env::set_var("SHELL", "/usr/bin/bash");
         assert_eq!(Shell::Bash, get_shell(&None));
+        env::set_var("SHELL", "/usr/bin/zsh");
+        assert_eq!(Shell::default(), get_shell(&None));
     }
 
     #[test]
@@ -59,20 +78,18 @@ mod tests {
     fn string_formatting() {
         // TODO: generalize test cases for different shells
         assert_eq!(
-            export_string(&Shell::Fish, "", &String::from("")),
-            "set -gx  ;"
-        ); // TODO: this should panic
-        assert_eq!(
-            export_string(&Shell::Fish, "FOO", &String::from("bar")),
+            export_string(&Shell::Fish, "FOO", &String::from("bar")).unwrap(),
             "set -gx FOO bar;"
         );
         assert_eq!(
-            export_string(&Shell::Bash, "", &String::from("")),
-            "export ="
-        ); // TODO: this should panic
-        assert_eq!(
-            export_string(&Shell::Bash, "FOO", &String::from("bar")),
+            export_string(&Shell::Bash, "FOO", &String::from("bar")).unwrap(),
             "export FOO=bar"
         );
+    }
+    #[test]
+    fn prevent_invalid_setenv() {
+        assert!(export_string(&Shell::default(), "", &String::from("")).is_err());
+        assert!(export_string(&Shell::default(), "FOO", &String::from("")).is_err());
+        assert!(export_string(&Shell::default(), "", &String::from("bar")).is_err());
     }
 }

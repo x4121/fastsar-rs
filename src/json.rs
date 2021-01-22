@@ -1,3 +1,4 @@
+use crate::error::Error;
 extern crate serde_json;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
@@ -23,8 +24,15 @@ fn parse_json(contents: &String) -> Result<Vec<Account>, serde_json::Error> {
     serde_json::from_str::<Vec<Account>>(&contents)
 }
 
-pub fn read_config(path: &PathBuf) -> Result<Vec<Account>, io::Error> {
-    let contents = read_file(&path)?;
-    let res = parse_json(&contents)?;
-    Ok(res)
+pub fn read_config(path: &PathBuf) -> Result<Vec<Account>, Error> {
+    match read_file(&path) {
+        Ok(contents) => match parse_json(&contents) {
+            Ok(res) => Ok(res),
+            Err(err) => Err(Error::Json(err)),
+        },
+        Err(err) => Err(Error::Io(err)),
+    }
+    // let contents = read_file(&path)?;
+    // let res = parse_json(&contents)?;
+    // Ok(res)
 }

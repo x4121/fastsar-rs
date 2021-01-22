@@ -9,6 +9,7 @@ use subprocess::Exec;
 
 mod arguments;
 mod aws;
+mod error;
 mod json;
 mod shell;
 mod skim;
@@ -88,20 +89,20 @@ fn set_credentials(credentials: &Credentials) {
 }
 
 fn print_credentials(shell: &Shell, credentials: &Credentials) {
-    println!(
-        "{}",
-        shell::export_string(&shell, aws::ACCESS_KEY_ID, &credentials.access_key_id)
-    );
-    println!(
-        "{}",
-        shell::export_string(
-            &shell,
-            aws::SECRET_ACCESS_KEY,
-            &credentials.secret_access_key
-        )
-    );
-    println!(
-        "{}",
-        shell::export_string(&shell, aws::SESSION_TOKEN, &credentials.session_token)
-    );
+    match shell::export_string(&shell, aws::ACCESS_KEY_ID, &credentials.access_key_id) {
+        Ok(set_env) => println!("{}", set_env),
+        Err(err) => eprintln!("Could not set env '{}': {}", aws::ACCESS_KEY_ID, err),
+    }
+    match shell::export_string(
+        &shell,
+        aws::SECRET_ACCESS_KEY,
+        &credentials.secret_access_key,
+    ) {
+        Ok(set_env) => println!("{}", set_env),
+        Err(err) => eprintln!("Could not set env '{}': {}", aws::SECRET_ACCESS_KEY, err),
+    }
+    match shell::export_string(&shell, aws::SESSION_TOKEN, &credentials.session_token) {
+        Ok(set_env) => println!("{}", set_env),
+        Err(err) => eprintln!("Could not set env '{}': {}", aws::SESSION_TOKEN, err),
+    }
 }
