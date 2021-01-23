@@ -1,8 +1,11 @@
+#[cfg(test)]
+#[macro_use(quickcheck)]
+extern crate quickcheck_macros;
 use crate::arguments::Arguments;
-use json::Account;
+use crate::json::Account;
+use crate::shell::Shell;
 use rusoto_core::Region;
 use rusoto_sts::Credentials;
-use shell::Shell;
 use std::env;
 use structopt::StructOpt;
 use subprocess::Exec;

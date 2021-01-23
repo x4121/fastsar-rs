@@ -1,5 +1,10 @@
+#[cfg(test)]
+extern crate quickcheck;
 use crate::error::Error;
+use anyhow::Result;
 use std::env;
+#[cfg(test)]
+use std::path::PathBuf;
 use std::str::FromStr;
 
 #[derive(PartialEq, Debug)]
@@ -25,10 +30,12 @@ impl FromStr for Shell {
     }
 }
 
+const SHELL_ENV: &str = "SHELL";
+
 pub fn get_shell(preselect: &Option<String>) -> Shell {
     match preselect {
         Some(shell) => Shell::from_str(shell.as_str()).unwrap(),
-        _ => match env::var("SHELL") {
+        _ => match env::var(SHELL_ENV) {
             Ok(shell) => Shell::from_str(shell.split("/").last().unwrap()).unwrap(),
             _ => Shell::default(),
         },
@@ -53,30 +60,42 @@ mod tests {
 
     #[test]
     fn reading_from_string() {
-        assert_eq!(Shell::Bash, Shell::from_str("bash").unwrap());
-        assert_eq!(Shell::Fish, Shell::from_str("fish").unwrap());
-        assert_eq!(Shell::default(), Shell::from_str("zsh").unwrap()); // TODO: replace with quickcheck
+        assert_eq!(Shell::from_str("bash").unwrap(), Shell::Bash);
+        assert_eq!(Shell::from_str("fish").unwrap(), Shell::Fish);
+    }
+
+    #[quickcheck]
+    fn string_default(s: String) -> bool {
+        Shell::from_str(&s).unwrap() == Shell::default()
     }
 
     #[test]
     fn reading_from_env() {
-        env::set_var("SHELL", "/usr/bin/fish");
-        assert_eq!(Shell::Fish, get_shell(&None));
-        env::set_var("SHELL", "/usr/bin/bash");
-        assert_eq!(Shell::Bash, get_shell(&None));
-        env::set_var("SHELL", "/usr/bin/zsh");
-        assert_eq!(Shell::default(), get_shell(&None));
+        env::set_var(SHELL_ENV, "/usr/bin/fish");
+        assert_eq!(get_shell(&None), Shell::Fish);
+        env::set_var(SHELL_ENV, "/usr/bin/bash");
+        assert_eq!(get_shell(&None), Shell::Bash);
+        env::set_var(SHELL_ENV, "/usr/bin/zsh");
+        assert_eq!(get_shell(&None), Shell::default());
+    }
+
+    #[quickcheck]
+    fn env_default(path: PathBuf) -> bool {
+        let path = path.into_os_string().into_string().unwrap();
+        // env::set_var does not allow nul bytes
+        let path = path.replace(char::from(0), "");
+        env::set_var(SHELL_ENV, &path);
+        get_shell(&None) == Shell::default()
     }
 
     #[test]
     fn prefer_preselect_over_env() {
-        env::set_var("SHELL", "/usr/bin/fish");
-        assert_eq!(Shell::Bash, get_shell(&Some(String::from("bash"))));
+        env::set_var(SHELL_ENV, "/usr/bin/fish");
+        assert_eq!(get_shell(&Some(String::from("bash"))), Shell::Bash);
     }
 
     #[test]
     fn string_formatting() {
-        // TODO: generalize test cases for different shells
         assert_eq!(
             export_string(&Shell::Fish, "FOO", &String::from("bar")).unwrap(),
             "set -gx FOO bar;"
