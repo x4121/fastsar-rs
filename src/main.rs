@@ -4,15 +4,14 @@ extern crate quickcheck_macros;
 use crate::arguments::Arguments;
 use crate::json::Account;
 use crate::shell::Shell;
-use rusoto_core::Region;
 use rusoto_sts::Credentials;
 use std::env;
+use std::process;
 use structopt::StructOpt;
 use subprocess::Exec;
 
 mod arguments;
 mod aws;
-mod error;
 mod json;
 mod shell;
 mod skim;
@@ -21,7 +20,13 @@ mod skim;
 async fn main() {
     let arguments: Arguments = Arguments::from_args();
     let shell = shell::get_shell(&arguments.shell);
-    let region: Region = aws::get_region(&arguments.region);
+    let region = match aws::get_region(&arguments.region) {
+        Ok(region) => region,
+        Err(err) => {
+            eprintln!("{:?}", err);
+            process::exit(1);
+        }
+    };
 
     println!("{:#?}", arguments);
     let account: Option<Account> = select_account(&arguments);

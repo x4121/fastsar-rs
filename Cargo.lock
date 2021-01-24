@@ -37,6 +37,27 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "23b62fc65de8e4e7f52534fb52b0f3ed04746ae267519eef2a83941e8085068b"
 
 [[package]]
+name = "async-stream"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3670df70cbc01729f901f94c887814b3c68db038aad1329a418bae178bc5295c"
+dependencies = [
+ "async-stream-impl",
+ "futures-core",
+]
+
+[[package]]
+name = "async-stream-impl"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a3548b8efc9f8e8a5a0a2808c5bd8451a9031b9e5b879a79590304ae928b0a70"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "async-trait"
 version = "0.1.42"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -125,6 +146,9 @@ name = "bytes"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ad1f8e949d755f9d79112b5bb46938e0ef9d3804a0b16dfab13aafcaa5f0fa72"
+dependencies = [
+ "serde 1.0.118",
+]
 
 [[package]]
 name = "cc"
@@ -1420,6 +1444,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "rusoto_mock"
+version = "0.46.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3ab46f26601e8c5663d9a1f973b90748c2e625b0dd08c22c4a6f9dc15dbe9118"
+dependencies = [
+ "async-trait",
+ "chrono",
+ "futures",
+ "http",
+ "rusoto_core",
+ "serde 1.0.118",
+ "serde_json",
+]
+
+[[package]]
 name = "rusoto_signature"
 version = "0.46.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1455,6 +1494,8 @@ dependencies = [
  "chrono",
  "futures",
  "rusoto_core",
+ "serde 1.0.118",
+ "serde_derive",
  "serde_urlencoded",
  "xml-rs",
 ]
@@ -1670,6 +1711,7 @@ dependencies = [
  "quickcheck",
  "quickcheck_macros",
  "rusoto_core",
+ "rusoto_mock",
  "rusoto_sts",
  "serde 1.0.118",
  "serde_derive",
@@ -1679,8 +1721,8 @@ dependencies = [
  "structopt",
  "subprocess",
  "termcolor",
- "thiserror",
  "tokio",
+ "tokio-test",
 ]
 
 [[package]]
@@ -1904,26 +1946,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "thiserror"
-version = "1.0.23"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "76cc616c6abf8c8928e2fdcc0dbfab37175edd8fb49a4641066ad1364fdab146"
-dependencies = [
- "thiserror-impl",
-]
-
-[[package]]
-name = "thiserror-impl"
-version = "1.0.23"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9be73a2caec27583d0046ef3796c3794f868a5bc813db689eed00c7631275cd1"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "thread_local"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2044,6 +2066,30 @@ checksum = "f7d995660bd2b7f8c1568414c1126076c13fbb725c40112dc0120b78eb9b717b"
 dependencies = [
  "native-tls",
  "tokio",
+]
+
+[[package]]
+name = "tokio-stream"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "76066865172052eb8796c686f0b441a93df8b08d40a950b062ffb9a426f00edd"
+dependencies = [
+ "futures-core",
+ "pin-project-lite",
+ "tokio",
+]
+
+[[package]]
+name = "tokio-test"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7c7d205f6f59b03f9e824ac86eaba635a98395f287756ecc8a06464779c399bf"
+dependencies = [
+ "async-stream",
+ "bytes 1.0.0",
+ "futures-core",
+ "tokio",
+ "tokio-stream",
 ]
 
 [[package]]

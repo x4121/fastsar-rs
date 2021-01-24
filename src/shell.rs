@@ -1,7 +1,6 @@
 #[cfg(test)]
 extern crate quickcheck;
-use crate::error::Error;
-use anyhow::Result;
+use anyhow::*;
 use std::env;
 #[cfg(test)]
 use std::path::PathBuf;
@@ -23,9 +22,10 @@ impl FromStr for Shell {
     type Err = ();
 
     fn from_str(shell: &str) -> Result<Self, Self::Err> {
-        match shell {
-            "fish" => Ok(Shell::Fish),
-            _ => Ok(Shell::default()),
+        if shell == "fish" {
+            Ok(Shell::Fish)
+        } else {
+            Ok(Shell::default())
         }
     }
 }
@@ -33,18 +33,18 @@ impl FromStr for Shell {
 const SHELL_ENV: &str = "SHELL";
 
 pub fn get_shell(preselect: &Option<String>) -> Shell {
-    match preselect {
-        Some(shell) => Shell::from_str(shell.as_str()).unwrap(),
-        _ => match env::var(SHELL_ENV) {
-            Ok(shell) => Shell::from_str(shell.split("/").last().unwrap()).unwrap(),
-            _ => Shell::default(),
-        },
+    if let Some(shell) = preselect {
+        Shell::from_str(shell.as_str()).unwrap()
+    } else if let Ok(shell) = env::var(SHELL_ENV) {
+        Shell::from_str(shell.split("/").last().unwrap()).unwrap()
+    } else {
+        Shell::default()
     }
 }
 
-pub fn export_string(shell: &Shell, var: &str, val: &String) -> Result<String, Error> {
+pub fn export_string(shell: &Shell, var: &str, val: &String) -> Result<String> {
     if var.is_empty() || val.is_empty() {
-        Err(Error::InvalidSetEnv)
+        bail!("Set-env satement cannot have empty name or value")
     } else {
         let string = match shell {
             Shell::Fish => format!("set -gx {} {};", var, val),
