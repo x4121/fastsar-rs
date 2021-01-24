@@ -5,7 +5,6 @@ use crate::arguments::Arguments;
 use crate::json::Account;
 use crate::shell::Shell;
 use rusoto_sts::Credentials;
-use std::env;
 use std::process;
 use structopt::StructOpt;
 use subprocess::Exec;
@@ -29,19 +28,19 @@ async fn main() {
     };
 
     println!("{:#?}", arguments);
-    let account: Option<Account> = select_account(&arguments);
-    let role: Option<String> = match &account {
-        Some(a) => select_role(&a, &arguments),
-        _ => None,
+    let account = select_account(&arguments);
+    let role = if let Some(account) = &account {
+        select_role(&account, &arguments)
+    } else {
+        None
     };
     println!(
         "account: {:?}, role: {:?}, region: {:?}",
         &account, &role, &region
     );
     let credentials = match (account, role) {
-        (Some(a), Some(r)) => {
-            let id = a.id;
-            match aws::assume_role(&id, &r, region, &arguments).await {
+        (Some(account), Some(role)) => {
+            match aws::assume_role(&account.id, &role, region, &arguments).await {
                 Ok(credentials) => Some(credentials),
                 _ => None,
             }
@@ -50,21 +49,21 @@ async fn main() {
     };
 
     match (credentials, arguments.exec) {
-        (Some(c), Some(x)) => {
-            set_credentials(&c);
-            let _ = Exec::shell(&x).join();
+        (Some(credentials), Some(exec)) => {
+            set_credentials(&credentials);
+            let _ = Exec::shell(&exec).join();
         }
-        (Some(c), None) => print_credentials(&shell, &c),
+        (Some(credentials), None) => print_credentials(&shell, &credentials),
         _ => (),
     };
 }
 
 fn select_account(arguments: &Arguments) -> Option<Account> {
-    let mut accounts: Vec<Account> = json::read_config(&arguments.get_config_path()).unwrap();
+    let mut accounts = json::read_config(&arguments.get_config_path()).unwrap();
     match &arguments.account {
-        Some(account) => accounts
+        Some(account_id) => accounts
             .iter()
-            .filter(|&a| &a.id == account)
+            .filter(|&a| &a.id == account_id)
             .cloned()
             .collect::<Vec<Account>>()
             .first()
@@ -78,7 +77,7 @@ fn select_account(arguments: &Arguments) -> Option<Account> {
 }
 
 fn select_role(account: &Account, arguments: &Arguments) -> Option<String> {
-    let mut roles: Vec<String> = account.clone().roles;
+    let mut roles = account.clone().roles;
     match &arguments.role {
         Some(role) if roles.iter().any(|r| r == role) => Some(role.to_string()),
         Some(_) => None,
@@ -91,9 +90,15 @@ fn select_role(account: &Account, arguments: &Arguments) -> Option<String> {
 }
 
 fn set_credentials(credentials: &Credentials) {
-    env::set_var(aws::ACCESS_KEY_ID, &credentials.access_key_id);
-    env::set_var(aws::SECRET_ACCESS_KEY, &credentials.secret_access_key);
-    env::set_var(aws::SESSION_TOKEN, &credentials.session_token);
+    if let Err(err) = shell::set_var(aws::ACCESS_KEY_ID, &credentials.access_key_id) {
+        eprintln!("Could not set env '{}': {}", aws::ACCESS_KEY_ID, err);
+    };
+    if let Err(err) = shell::set_var(aws::SECRET_ACCESS_KEY, &credentials.secret_access_key) {
+        eprintln!("Could not set env '{}': {}", aws::SECRET_ACCESS_KEY, err);
+    };
+    if let Err(err) = shell::set_var(aws::SESSION_TOKEN, &credentials.session_token) {
+        eprintln!("Could not set env '{}': {}", aws::SESSION_TOKEN, err);
+    };
 }
 
 fn print_credentials(shell: &Shell, credentials: &Credentials) {

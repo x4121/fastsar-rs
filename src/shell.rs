@@ -54,6 +54,15 @@ pub fn export_string(shell: &Shell, var: &str, val: &String) -> Result<String> {
     }
 }
 
+pub fn set_var(var: &str, val: &String) -> Result<()> {
+    if var.is_empty() || val.is_empty() {
+        bail!("Set-env satement cannot have empty name or value")
+    } else {
+        env::set_var(var, val);
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -105,10 +114,21 @@ mod tests {
             "export FOO=bar"
         );
     }
+
+    #[test]
+    fn test_set_var() {
+        let _ = set_var("FOO", &String::from("bar"));
+        assert_eq!(env::var("FOO").unwrap(), "bar");
+    }
+
     #[test]
     fn prevent_invalid_setenv() {
         assert!(export_string(&Shell::default(), "", &String::from("")).is_err());
         assert!(export_string(&Shell::default(), "FOO", &String::from("")).is_err());
         assert!(export_string(&Shell::default(), "", &String::from("bar")).is_err());
+
+        assert!(set_var("", &String::from("")).is_err());
+        assert!(set_var("FOO", &String::from("")).is_err());
+        assert!(set_var("", &String::from("bar")).is_err());
     }
 }
