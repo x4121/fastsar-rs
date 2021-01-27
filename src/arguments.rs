@@ -1,3 +1,4 @@
+use log::LevelFilter;
 use std::path::PathBuf;
 use structopt::StructOpt;
 
@@ -36,11 +37,23 @@ pub struct Arguments {
     /// Execute command after assuming role instead of printing set-env statements
     #[structopt(short = "x", long)]
     pub exec: Option<String>,
+
+    /// Print debug output
+    #[structopt(short, long)]
+    debug: bool,
 }
 
 impl Arguments {
     pub fn get_config_path(&self) -> PathBuf {
         Arguments::tilde(&self.config_path)
+    }
+
+    pub fn get_debug(&self) -> LevelFilter {
+        if self.debug {
+            LevelFilter::Debug
+        } else {
+            LevelFilter::Warn
+        }
     }
 
     fn tilde(path: &PathBuf) -> PathBuf {
