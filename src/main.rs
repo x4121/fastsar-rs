@@ -3,9 +3,12 @@
 extern crate quickcheck_macros;
 #[macro_use]
 extern crate log;
+#[macro_use]
+extern crate anyhow;
 use crate::arguments::Arguments;
-use crate::json::Account;
+use crate::json::{Account, Role};
 use crate::shell::Shell;
+use anyhow::Result;
 use rusoto_sts::Credentials;
 use simple_logger::SimpleLogger;
 use std::process;
@@ -40,20 +43,28 @@ async fn main() {
     debug!("Region: {:?}", &region);
 
     let account = match select_account(&arguments) {
-        Some(account) => account,
-        None => process::exit(0),
+        Ok(Some(account)) => account,
+        Ok(None) => process::exit(0),
+        Err(err) => {
+            error!("{}", err);
+            process::exit(1);
+        }
     };
     debug!("Account: {:?}", &account.id);
     let role = match select_role(&account, &arguments) {
-        Some(role) => role,
-        None => process::exit(0),
+        Ok(Some(role)) => role,
+        Ok(None) => process::exit(0),
+        Err(err) => {
+            error!("{}", err);
+            process::exit(1);
+        }
     };
     debug!("Role: {:?}", &role);
     let credentials = match aws::assume_role(&account.id, &role, region, &arguments).await {
         Ok(credentials) => credentials,
         Err(err) => {
             error!("{}", err);
-            process::exit(2)
+            process::exit(1);
         }
     };
 
@@ -66,32 +77,38 @@ async fn main() {
     };
 }
 
-fn select_account(arguments: &Arguments) -> Option<Account> {
-    let mut accounts = json::read_config(&arguments.get_config_path()).unwrap();
+fn select_account(arguments: &Arguments) -> Result<Option<Account>> {
+    let mut accounts = json::read_config(&arguments.get_config_path())?;
     match &arguments.account {
-        Some(account_id) => accounts
-            .iter()
-            .filter(|&a| &a.id == account_id)
-            .cloned()
-            .collect::<Vec<Account>>()
-            .first()
-            .cloned(),
+        Some(account_id) => {
+            let account = accounts
+                .iter()
+                .filter(|&a| &a.id == account_id)
+                .cloned()
+                .collect::<Vec<Account>>()
+                .first()
+                .cloned();
+            match account {
+                Some(account) => Ok(Some(account)),
+                None => bail!("Account {} not found in config.", account_id),
+            }
+        }
         _ => match accounts.len() {
-            0 => None,
-            1 => Some(accounts.remove(0)),
+            0 => bail!("Config file is empty."),
+            1 => Ok(Some(accounts.remove(0))),
             _ => skim::select_account(accounts),
         },
     }
 }
 
-fn select_role(account: &Account, arguments: &Arguments) -> Option<String> {
+fn select_role(account: &Account, arguments: &Arguments) -> Result<Option<Role>> {
     let mut roles = account.clone().roles;
     match &arguments.role {
-        Some(role) if roles.iter().any(|r| r == role) => Some(role.to_string()),
-        Some(_) => None,
+        Some(role) if roles.iter().any(|r| r == role) => Ok(Some(role.to_string())),
+        Some(role) => bail!("Role {} not found in config.", role),
         _ => match roles.len() {
-            0 => None,
-            1 => Some(roles.remove(0)),
+            0 => bail!("Account {} has no assigned roles.", account.id),
+            1 => Ok(Some(roles.remove(0))),
             _ => skim::select_role(roles),
         },
     }

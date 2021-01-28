@@ -5,11 +5,13 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::path::PathBuf;
 
+pub type Role = String;
+
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 pub struct Account {
     pub name: String,
     pub id: String,
-    pub roles: Vec<String>,
+    pub roles: Vec<Role>,
 }
 
 fn read_file(path: &PathBuf) -> Result<String> {

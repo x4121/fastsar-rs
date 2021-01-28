@@ -1,6 +1,6 @@
 #[cfg(test)]
 extern crate quickcheck;
-use anyhow::*;
+use anyhow::Result;
 use std::env;
 #[cfg(test)]
 use std::path::PathBuf;
@@ -44,7 +44,7 @@ pub fn get_shell(preselect: &Option<String>) -> Shell {
 
 pub fn export_string(shell: &Shell, var: &str, val: &String) -> Result<String> {
     if var.is_empty() || val.is_empty() {
-        bail!("Set-env satement cannot have empty name or value")
+        bail!("Set-env satement cannot have empty name or value.")
     } else {
         let string = match shell {
             Shell::Fish => format!("set -gx {} {};", var, val),
@@ -56,7 +56,7 @@ pub fn export_string(shell: &Shell, var: &str, val: &String) -> Result<String> {
 
 pub fn set_var(var: &str, val: &String) -> Result<()> {
     if var.is_empty() || val.is_empty() {
-        bail!("Set-env satement cannot have empty name or value")
+        bail!("Set-env satement cannot have empty name or value.")
     } else {
         env::set_var(var, val);
         Ok(())

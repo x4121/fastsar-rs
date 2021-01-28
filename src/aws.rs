@@ -1,5 +1,5 @@
 use crate::arguments::Arguments;
-use anyhow::*;
+use anyhow::Result;
 use rusoto_core::Region;
 #[cfg(test)]
 use rusoto_mock::*;
@@ -33,7 +33,7 @@ async fn assume_role_exec(
     if let Some(credentials) = output.credentials {
         Ok(credentials)
     } else {
-        bail!("no credentials")
+        bail!("Response from AWS contains no credentials.")
     }
 }
 
