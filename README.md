@@ -1,9 +1,9 @@
 # *f*uzzy *A*WS *sts* *A*ssume*R*ole
-![](Why-Cant-I-Hold-All-These-AWS-Accounts.jpg)
-
 A small program to switch between
 [AWS Roles](https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html)
 quickly using fuzzy matching
+
+![](Why-Cant-I-Hold-All-These-AWS-Accounts.jpg)
 
 ## Features
 - Assume AWS role with minimum keystrokes
