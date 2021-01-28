@@ -558,6 +558,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "fastsar"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "config",
+ "futures",
+ "log",
+ "quickcheck",
+ "quickcheck_macros",
+ "rusoto_core",
+ "rusoto_mock",
+ "rusoto_sts",
+ "serde 1.0.118",
+ "serde_derive",
+ "serde_json",
+ "shellexpand",
+ "simple_logger",
+ "skim",
+ "structopt",
+ "subprocess",
+ "termcolor",
+ "tokio",
+ "tokio-test",
+]
+
+[[package]]
 name = "fnv"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1723,32 +1749,6 @@ dependencies = [
  "colored",
  "log",
  "winapi",
-]
-
-[[package]]
-name = "skastsar"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "config",
- "futures",
- "log",
- "quickcheck",
- "quickcheck_macros",
- "rusoto_core",
- "rusoto_mock",
- "rusoto_sts",
- "serde 1.0.118",
- "serde_derive",
- "serde_json",
- "shellexpand",
- "simple_logger",
- "skim",
- "structopt",
- "subprocess",
- "termcolor",
- "tokio",
- "tokio-test",
 ]
 
 [[package]]

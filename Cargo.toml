@@ -1,8 +1,20 @@
 [package]
-name = "skastsar"
+name = "fastsar"
 version = "0.1.0"
 authors = ["Armin Grodon <me@armingrodon.de>"]
+description = "Switch between AWS roles quickly using fuzzy matching"
+documentation = "https://github.com/x4121/fastsar-rs"
+homepage = "https://github.com/x4121/fastsar-rs"
+repository = "https://github.com/x4121/fastsar-rs"
+keywords = ["aws", "sts", "assume role"]
+categories = ["command-line-utilities"]
+license = "MIT"
+readme = "README.md"
 edition = "2018"
+
+[[bin]]
+name = "fastsar"
+bench = false
 
 [dependencies]
 anyhow = "~1.0"
