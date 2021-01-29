@@ -15,25 +15,39 @@ fn get_selection(header: &String, options: &Vec<String>) -> Result<Option<usize>
     if let Some(out) = Skim::run_with(&skim_options, Some(items)) {
         if let Event::EvActAccept(_) = out.final_event {
             let item = &out.selected_items[0];
-            Ok(options.iter().position(|e| e == &item.output()))
-        } else {
-            Ok(None)
+            return Ok(options.iter().position(|e| e == &item.output()));
         }
-    } else {
-        bail!("Err")
     }
+    Ok(None)
 }
 
 fn get_account_names(accounts: &Vec<Account>) -> Vec<String> {
     accounts.clone().into_iter().map(|e| e.name).collect()
 }
 
-pub fn select_account(mut accounts: Vec<Account>) -> Result<Option<Account>> {
+fn sort_with_preselect(list: &Vec<String>, preselect: &Option<String>) -> Vec<String> {
+    if let Some(element) = preselect {
+        if let Some(pos) = list.iter().position(|e| e == element) {
+            let mut list = list.to_vec();
+            list.remove(pos);
+            list.insert(0, element.to_string());
+            return list;
+        }
+    }
+    list.clone()
+}
+
+pub fn select_account(
+    mut accounts: Vec<Account>,
+    preselect: &Option<String>,
+) -> Result<Option<Account>> {
     let account_names = get_account_names(&accounts);
+    let account_names = sort_with_preselect(&account_names, preselect);
     get_selection(&String::from("Accounts:"), &account_names).map(|o| o.map(|a| accounts.remove(a)))
 }
 
-pub fn select_role(mut roles: Vec<Role>) -> Result<Option<Role>> {
+pub fn select_role(roles: Vec<Role>, preselect: &Option<String>) -> Result<Option<Role>> {
+    let mut roles = sort_with_preselect(&roles, preselect);
     get_selection(&String::from("Roles:"), &roles).map(|o| o.map(|r| roles.remove(r)))
 }
 

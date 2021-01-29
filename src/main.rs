@@ -9,6 +9,7 @@ use crate::arguments::Arguments;
 use crate::json::{Account, Role};
 use crate::shell::Shell;
 use anyhow::Result;
+use history::History;
 use rusoto_sts::Credentials;
 use simple_logger::SimpleLogger;
 use std::io::Write;
@@ -19,9 +20,11 @@ use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
 
 mod arguments;
 mod aws;
+mod history;
 mod json;
 mod shell;
 mod skim;
+mod util;
 
 #[tokio::main]
 async fn main() {
@@ -35,6 +38,14 @@ async fn main() {
     debug!("{:#?}", arguments);
     let shell = shell::get_shell(&arguments.shell);
     debug!("Shell: {:?}", &shell);
+    let history = match history::read(&arguments.get_history_path()) {
+        Ok(history) => history,
+        Err(err) => {
+            error!("{}", err);
+            process::exit(1);
+        }
+    };
+    debug!("History: {:?}", &history);
     let region = match aws::get_region(&arguments.region) {
         Ok(region) => region,
         Err(err) => {
@@ -44,7 +55,7 @@ async fn main() {
     };
     debug!("Region: {:?}", &region);
 
-    let account = match select_account(&arguments) {
+    let account = match select_account(&arguments, &history) {
         Ok(Some(account)) => account,
         Ok(None) => process::exit(0),
         Err(err) => {
@@ -53,7 +64,7 @@ async fn main() {
         }
     };
     debug!("Account: {:?}", &account.id);
-    let role = match select_role(&account, &arguments) {
+    let role = match select_role(&account, &arguments, &history) {
         Ok(Some(role)) => role,
         Ok(None) => process::exit(0),
         Err(err) => {
@@ -70,16 +81,24 @@ async fn main() {
         }
     };
 
-    let status = match arguments.exec {
+    let status = match &arguments.exec {
         Some(exec) => set_credentials_and_exec(&credentials, &exec),
         None => print_credentials(&shell, &credentials),
     };
     if let Err(_) = status {
         process::exit(1);
     }
+    let history = History {
+        account: account.name,
+        role,
+    };
+    if let Err(err) = history::save(&arguments.get_history_path(), &history) {
+        error!("{}", err);
+        process::exit(1);
+    }
 }
 
-fn select_account(arguments: &Arguments) -> Result<Option<Account>> {
+fn select_account(arguments: &Arguments, history: &Option<History>) -> Result<Option<Account>> {
     let mut accounts = json::read_config(&arguments.get_config_path())?;
     match &arguments.account {
         Some(account_id) => {
@@ -98,12 +117,16 @@ fn select_account(arguments: &Arguments) -> Result<Option<Account>> {
         _ => match accounts.len() {
             0 => bail!("Config file is empty."),
             1 => Ok(Some(accounts.remove(0))),
-            _ => skim::select_account(accounts),
+            _ => skim::select_account(accounts, &history.clone().map(|h| h.account)),
         },
     }
 }
 
-fn select_role(account: &Account, arguments: &Arguments) -> Result<Option<Role>> {
+fn select_role(
+    account: &Account,
+    arguments: &Arguments,
+    history: &Option<History>,
+) -> Result<Option<Role>> {
     let mut roles = account.clone().roles;
     match &arguments.role {
         Some(role) if roles.iter().any(|r| r == role) => Ok(Some(role.to_string())),
@@ -111,7 +134,7 @@ fn select_role(account: &Account, arguments: &Arguments) -> Result<Option<Role>>
         _ => match roles.len() {
             0 => bail!("Account {} has no assigned roles.", account.id),
             1 => Ok(Some(roles.remove(0))),
-            _ => skim::select_role(roles),
+            _ => skim::select_role(roles, &history.clone().map(|h| h.role)),
         },
     }
 }

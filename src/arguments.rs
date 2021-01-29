@@ -12,6 +12,13 @@ pub struct Arguments {
         parse(from_os_str)
     )]
     config_path: PathBuf,
+    #[structopt(
+        short = "H",
+        long = "history",
+        default_value = "~/.aws/.sts_history",
+        parse(from_os_str)
+    )]
+    history_path: PathBuf,
 
     /// Override detected shell
     #[structopt(short, long)]
@@ -46,6 +53,10 @@ pub struct Arguments {
 impl Arguments {
     pub fn get_config_path(&self) -> PathBuf {
         Arguments::tilde(&self.config_path)
+    }
+
+    pub fn get_history_path(&self) -> PathBuf {
+        Arguments::tilde(&self.history_path)
     }
 
     pub fn get_debug(&self) -> LevelFilter {

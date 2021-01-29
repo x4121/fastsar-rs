@@ -1,8 +1,7 @@
 extern crate serde_json;
+use crate::util;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use std::fs::File;
-use std::io::prelude::*;
 use std::path::PathBuf;
 
 pub type Role = String;
@@ -14,20 +13,13 @@ pub struct Account {
     pub roles: Vec<Role>,
 }
 
-fn read_file(path: &PathBuf) -> Result<String> {
-    let mut file = File::open(path)?;
-    let mut contents = String::new();
-    file.read_to_string(&mut contents)?;
-    Ok(contents)
-}
-
 fn parse_json(contents: &String) -> Result<Vec<Account>> {
     let acc: Vec<Account> = serde_json::from_str(&contents)?;
     Ok(acc)
 }
 
 pub fn read_config(path: &PathBuf) -> Result<Vec<Account>> {
-    let contents = read_file(&path)?;
+    let contents = util::read_file(&path)?;
     let res = parse_json(&contents)?;
     Ok(res)
 }
