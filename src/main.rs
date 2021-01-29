@@ -11,9 +11,11 @@ use crate::shell::Shell;
 use anyhow::Result;
 use rusoto_sts::Credentials;
 use simple_logger::SimpleLogger;
+use std::io::Write;
 use std::process;
 use structopt::StructOpt;
 use subprocess::Exec;
+use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
 
 mod arguments;
 mod aws;
@@ -68,13 +70,13 @@ async fn main() {
         }
     };
 
-    match arguments.exec {
-        Some(exec) => {
-            set_credentials(&credentials);
-            let _ = Exec::shell(&exec).join();
-        }
+    let status = match arguments.exec {
+        Some(exec) => set_credentials_and_exec(&credentials, &exec),
         None => print_credentials(&shell, &credentials),
     };
+    if let Err(_) = status {
+        process::exit(1);
+    }
 }
 
 fn select_account(arguments: &Arguments) -> Result<Option<Account>> {
@@ -114,22 +116,35 @@ fn select_role(account: &Account, arguments: &Arguments) -> Result<Option<Role>>
     }
 }
 
-fn set_credentials(credentials: &Credentials) {
+fn set_credentials_and_exec(credentials: &Credentials, exec: &String) -> Result<()> {
+    set_credentials(credentials)?;
+    let _ = Exec::shell(exec).join()?;
+    Ok(())
+}
+
+fn set_credentials(credentials: &Credentials) -> Result<()> {
     if let Err(err) = shell::set_var(aws::ACCESS_KEY_ID, &credentials.access_key_id) {
         error!("Could not set env '{}': {}", aws::ACCESS_KEY_ID, err);
+        return Err(err);
     };
     if let Err(err) = shell::set_var(aws::SECRET_ACCESS_KEY, &credentials.secret_access_key) {
         error!("Could not set env '{}': {}", aws::SECRET_ACCESS_KEY, err);
+        return Err(err);
     };
     if let Err(err) = shell::set_var(aws::SESSION_TOKEN, &credentials.session_token) {
         error!("Could not set env '{}': {}", aws::SESSION_TOKEN, err);
+        return Err(err);
     };
+    Ok(())
 }
 
-fn print_credentials(shell: &Shell, credentials: &Credentials) {
+fn print_credentials(shell: &Shell, credentials: &Credentials) -> Result<()> {
     match shell::export_string(&shell, aws::ACCESS_KEY_ID, &credentials.access_key_id) {
         Ok(set_env) => println!("{}", set_env),
-        Err(err) => error!("Could not set env '{}': {}", aws::ACCESS_KEY_ID, err),
+        Err(err) => {
+            error!("Could not set env '{}': {}", aws::ACCESS_KEY_ID, err);
+            return Err(err);
+        }
     }
     match shell::export_string(
         &shell,
@@ -137,10 +152,25 @@ fn print_credentials(shell: &Shell, credentials: &Credentials) {
         &credentials.secret_access_key,
     ) {
         Ok(set_env) => println!("{}", set_env),
-        Err(err) => error!("Could not set env '{}': {}", aws::SECRET_ACCESS_KEY, err),
+        Err(err) => {
+            error!("Could not set env '{}': {}", aws::SECRET_ACCESS_KEY, err);
+            return Err(err);
+        }
     }
     match shell::export_string(&shell, aws::SESSION_TOKEN, &credentials.session_token) {
         Ok(set_env) => println!("{}", set_env),
-        Err(err) => error!("Could not set env '{}': {}", aws::SESSION_TOKEN, err),
+        Err(err) => {
+            error!("Could not set env '{}': {}", aws::SESSION_TOKEN, err);
+            return Err(err);
+        }
     }
+
+    let mut stderr = StandardStream::stderr(ColorChoice::Always);
+    stderr.set_color(ColorSpec::new().set_fg(Some(Color::Green)))?;
+    writeln!(
+        &mut stderr,
+        "Session valid until {}.",
+        credentials.expiration
+    )?;
+    Ok(())
 }
