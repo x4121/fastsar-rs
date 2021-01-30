@@ -1,6 +1,8 @@
 use crate::arguments::Arguments;
 use anyhow::Result;
+use rusoto_core::request::HttpClient;
 use rusoto_core::Region;
+use rusoto_credential::ProfileProvider;
 #[cfg(test)]
 use rusoto_mock::*;
 #[cfg(test)]
@@ -43,7 +45,13 @@ pub async fn assume_role(
     region: Region,
     arguments: &Arguments,
 ) -> Result<Credentials> {
-    let client = StsClient::new(region);
+    let mut provider = ProfileProvider::new()?;
+    provider.set_profile(arguments.profile.to_string());
+    let client = StsClient::new_with(
+        HttpClient::new().expect("failed to create request dispatcher"),
+        provider,
+        region,
+    );
     let mfa_id = arguments.mfa_id.clone();
     let mfa_token = arguments.mfa_token.clone();
     assume_role_exec(account, role, mfa_id, mfa_token, &client).await

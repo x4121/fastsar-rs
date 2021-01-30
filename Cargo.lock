@@ -568,6 +568,7 @@ dependencies = [
  "quickcheck",
  "quickcheck_macros",
  "rusoto_core",
+ "rusoto_credential",
  "rusoto_mock",
  "rusoto_sts",
  "serde 1.0.118",

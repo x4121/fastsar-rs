@@ -34,6 +34,9 @@ pub struct Arguments {
     #[structopt(short, long)]
     pub account: Option<String>,
 
+    #[structopt(short, long, default_value = "default")]
+    pub profile: String,
+
     /// MFA serial number (ARN)
     #[structopt(short, long)]
     pub mfa_id: Option<String>,
