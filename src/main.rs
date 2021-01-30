@@ -86,7 +86,7 @@ async fn main() {
         Some(exec) => set_credentials_and_exec(&credentials, &exec),
         None => print_credentials(&shell, &credentials),
     };
-    if let Err(_) = status {
+    if status.is_err() {
         process::exit(1);
     }
     let history = History {
@@ -140,7 +140,7 @@ fn select_role(
     }
 }
 
-fn set_credentials_and_exec(credentials: &Credentials, exec: &String) -> Result<()> {
+fn set_credentials_and_exec(credentials: &Credentials, exec: &str) -> Result<()> {
     set_credentials(credentials)?;
     let _ = Exec::shell(exec).join()?;
     Ok(())

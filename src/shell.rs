@@ -36,13 +36,13 @@ pub fn get_shell(preselect: &Option<String>) -> Shell {
     if let Some(shell) = preselect {
         Shell::from_str(shell.as_str()).unwrap()
     } else if let Ok(shell) = env::var(SHELL_ENV) {
-        Shell::from_str(shell.split("/").last().unwrap()).unwrap()
+        Shell::from_str(shell.split('/').last().unwrap()).unwrap()
     } else {
         Shell::default()
     }
 }
 
-pub fn export_string(shell: &Shell, var: &str, val: &String) -> Result<String> {
+pub fn export_string(shell: &Shell, var: &str, val: &str) -> Result<String> {
     if var.is_empty() || val.is_empty() {
         bail!("Set-env satement cannot have empty name or value.")
     } else {
@@ -54,7 +54,7 @@ pub fn export_string(shell: &Shell, var: &str, val: &String) -> Result<String> {
     }
 }
 
-pub fn set_var(var: &str, val: &String) -> Result<()> {
+pub fn set_var(var: &str, val: &str) -> Result<()> {
     if var.is_empty() || val.is_empty() {
         bail!("Set-env satement cannot have empty name or value.")
     } else {

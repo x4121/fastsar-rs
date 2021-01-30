@@ -13,7 +13,7 @@ pub struct Account {
     pub roles: Vec<Role>,
 }
 
-fn parse_json(contents: &String) -> Result<Vec<Account>> {
+fn parse_json(contents: &str) -> Result<Vec<Account>> {
     let acc: Vec<Account> = serde_json::from_str(&contents)?;
     Ok(acc)
 }

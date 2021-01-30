@@ -4,7 +4,7 @@ use anyhow::Result;
 use skim::prelude::*;
 use std::io::Cursor;
 
-fn get_selection(header: &String, options: &Vec<String>) -> Result<Option<usize>> {
+fn get_selection(header: &str, options: &[String]) -> Result<Option<usize>> {
     let skim_options = SkimOptionsBuilder::default()
         .header(Some(&header))
         .build()
@@ -21,11 +21,11 @@ fn get_selection(header: &String, options: &Vec<String>) -> Result<Option<usize>
     Ok(None)
 }
 
-fn get_account_names(accounts: &Vec<Account>) -> Vec<String> {
-    accounts.clone().into_iter().map(|e| e.name).collect()
+fn get_account_names(accounts: &[Account]) -> Vec<String> {
+    accounts.iter().map(|e| e.name.clone()).collect()
 }
 
-fn sort_with_preselect(list: &Vec<String>, preselect: &Option<String>) -> Vec<String> {
+fn sort_with_preselect(list: &[String], preselect: &Option<String>) -> Vec<String> {
     if let Some(element) = preselect {
         if let Some(pos) = list.iter().position(|e| e == element) {
             let mut list = list.to_vec();
@@ -34,7 +34,7 @@ fn sort_with_preselect(list: &Vec<String>, preselect: &Option<String>) -> Vec<St
             return list;
         }
     }
-    list.clone()
+    list.to_owned()
 }
 
 pub fn select_account(

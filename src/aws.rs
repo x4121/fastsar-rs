@@ -17,8 +17,8 @@ pub const SESSION_TOKEN: &str = "AWS_SESSION_TOKEN";
 const SESSION_NAME: &str = "skastsar_temp_session";
 
 async fn assume_role_exec(
-    account: &String,
-    role: &String,
+    account: &str,
+    role: &str,
     mfa_id: Option<String>,
     mfa_token: Option<String>,
     client: &StsClient,
@@ -40,8 +40,8 @@ async fn assume_role_exec(
 }
 
 pub async fn assume_role(
-    account: &String,
-    role: &String,
+    account: &str,
+    role: &str,
     region: Region,
     arguments: &Arguments,
 ) -> Result<Credentials> {

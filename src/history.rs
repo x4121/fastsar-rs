@@ -9,8 +9,8 @@ pub struct History {
 }
 
 pub fn read(path: &PathBuf) -> Result<Option<History>> {
-    let contents = util::read_file(&path).unwrap_or(String::from(""));
-    let lines: Vec<&str> = contents.split("\n").collect();
+    let contents = util::read_file(&path).unwrap_or_else(|_| String::from(""));
+    let lines: Vec<&str> = contents.split('\n').collect();
     if lines.len() >= 2 {
         Ok(Some(History {
             account: String::from(lines[0]),

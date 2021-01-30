@@ -10,7 +10,7 @@ pub fn read_file(path: &PathBuf) -> Result<String> {
     Ok(contents)
 }
 
-pub fn write_file(path: &PathBuf, contents: &String) -> Result<()> {
+pub fn write_file(path: &PathBuf, contents: &str) -> Result<()> {
     let mut file = File::create(path)?;
     file.write_all(contents.as_bytes())?;
     Ok(())
