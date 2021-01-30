@@ -42,8 +42,17 @@ pub fn select_account(
     preselect: &Option<String>,
 ) -> Result<Option<Account>> {
     let account_names = get_account_names(&accounts);
-    let account_names = sort_with_preselect(&account_names, preselect);
-    get_selection(&String::from("Accounts:"), &account_names).map(|o| o.map(|a| accounts.remove(a)))
+    let mut account_names = sort_with_preselect(&account_names, preselect);
+    get_selection(&String::from("Accounts:"), &account_names).map(|o| {
+        o.map(|a| {
+            let account_name = account_names.remove(a);
+            let pos = accounts
+                .iter()
+                .position(|e| e.name == account_name)
+                .unwrap();
+            accounts.remove(pos)
+        })
+    })
 }
 
 pub fn select_role(roles: Vec<Role>, preselect: &Option<String>) -> Result<Option<Role>> {
