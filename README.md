@@ -8,7 +8,7 @@ quickly using fuzzy matching
 ## Features
 - Assume AWS role with minimum keystrokes
 - All AWS roles accessible in one place
-- Pre-selects last used account/role (TODO)
+- Pre-selects last used account/role
 - Only requires user input if there is more than one account/role
 
 ## Usage
@@ -40,7 +40,9 @@ serial number" (ARN of the MFA device) and MFA token as parameters (e.g.
 `fastsar -m arn:aws:iam::123123123:mfa/user -t 123123`).
 
 ### Profiles
-TODO: Support profiles
+Fastsar will use your `default` profile configured in `~/.aws/config`.
+If you want to use a different profile, you can pass the profile's name as
+parameter (e.g. `fastsar -p my-profile`)
 
 ### Non-interactive mode
 Account id and role name can be passed as parameters to skip the interactive
