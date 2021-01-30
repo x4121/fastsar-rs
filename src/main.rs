@@ -11,7 +11,7 @@ use crate::shell::Shell;
 use anyhow::Result;
 use history::History;
 use rusoto_sts::Credentials;
-use simple_logger::SimpleLogger;
+use simplelog::{Config, TermLogger, TerminalMode};
 use std::io::Write;
 use std::process;
 use structopt::StructOpt;
@@ -30,10 +30,11 @@ mod util;
 async fn main() {
     let arguments: Arguments = Arguments::from_args();
 
-    SimpleLogger::new()
-        .with_level(arguments.get_debug())
-        .init()
-        .unwrap();
+    let _ = TermLogger::init(
+        arguments.get_log_level(),
+        Config::default(),
+        TerminalMode::Stderr,
+    );
 
     debug!("{:#?}", arguments);
     let shell = shell::get_shell(&arguments.shell);

@@ -62,7 +62,7 @@ impl Arguments {
         Arguments::tilde(&self.history_path)
     }
 
-    pub fn get_debug(&self) -> LevelFilter {
+    pub fn get_log_level(&self) -> LevelFilter {
         if self.debug {
             LevelFilter::Debug
         } else {
