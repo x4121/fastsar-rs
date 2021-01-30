@@ -1,4 +1,5 @@
 # *f*uzzy *A*WS *sts* *A*ssume*R*ole
+[![codecov](https://codecov.io/gh/x4121/fastsar-rs/branch/master/graph/badge.svg?token=VJN89Z04FA)](https://codecov.io/gh/x4121/fastsar-rs)
 A small program to switch between
 [AWS Roles](https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html)
 quickly using fuzzy matching
