@@ -38,20 +38,26 @@ fn sort_with_preselect(list: &Vec<String>, preselect: &Option<String>) -> Vec<St
 }
 
 pub fn select_account(
-    mut accounts: Vec<Account>,
+    accounts: Vec<Account>,
     preselect: &Option<String>,
 ) -> Result<Option<Account>> {
-    let account_names = get_account_names(&accounts);
-    let mut account_names = sort_with_preselect(&account_names, preselect);
-    get_selection(&String::from("Accounts:"), &account_names).map(|o| {
-        o.map(|a| {
-            let account_name = account_names.remove(a);
-            let pos = accounts
-                .iter()
-                .position(|e| e.name == account_name)
-                .unwrap();
-            accounts.remove(pos)
-        })
+    let account_names = sort_with_preselect(&get_account_names(&accounts), preselect);
+    get_selection(&String::from("Accounts:"), &account_names)
+        .map(|pos| get_account_from_sorted_names(accounts, account_names, &pos))
+}
+
+fn get_account_from_sorted_names(
+    mut accounts: Vec<Account>,
+    mut account_names: Vec<String>,
+    pos: &Option<usize>,
+) -> Option<Account> {
+    pos.map(|p| {
+        let account_name = account_names.remove(p);
+        let pos = accounts
+            .iter()
+            .position(|e| e.name == account_name)
+            .unwrap();
+        accounts.remove(pos)
     })
 }
 
@@ -86,5 +92,68 @@ mod tests {
         ];
         let expected = vec![accounts[0].name.clone(), accounts[1].name.clone()];
         assert_eq!(get_account_names(&accounts), expected);
+    }
+
+    #[test]
+    fn sort_list() {
+        let list = vec![
+            String::from("foo"),
+            String::from("bar"),
+            String::from("baz"),
+        ];
+        assert_eq!(sort_with_preselect(&list, &None), list);
+        assert_eq!(
+            sort_with_preselect(&list, &Some(String::from("nope"))),
+            list
+        );
+
+        let sorted_list = vec![
+            String::from("baz"),
+            String::from("foo"),
+            String::from("bar"),
+        ];
+        assert_eq!(
+            sort_with_preselect(&list, &Some(String::from("baz"))),
+            sorted_list
+        );
+    }
+
+    #[test]
+    fn get_from_sorted_list() {
+        let accounts = vec![
+            Account {
+                name: String::from("foo"),
+                id: String::from("1"),
+                roles: vec![String::from("user")],
+            },
+            Account {
+                name: String::from("bar"),
+                id: String::from("2"),
+                roles: vec![String::from("admin")],
+            },
+        ];
+        let account_names = get_account_names(&accounts);
+        assert_eq!(
+            get_account_from_sorted_names(accounts.clone(), account_names.clone(), &None),
+            None
+        );
+        assert_eq!(
+            get_account_from_sorted_names(accounts.clone(), account_names.clone(), &Some(0)),
+            Some(accounts[0].clone())
+        );
+        assert_eq!(
+            get_account_from_sorted_names(accounts.clone(), account_names.clone(), &Some(1)),
+            Some(accounts[1].clone())
+        );
+
+        let account_names = sort_with_preselect(&account_names, &Some(String::from("bar")));
+        assert_eq!(
+            get_account_from_sorted_names(accounts.clone(), account_names.clone(), &Some(0)),
+            Some(accounts[1].clone())
+        );
+        assert_eq!(
+            get_account_from_sorted_names(accounts.clone(), account_names.clone(), &Some(1)),
+            Some(accounts[0].clone())
+        );
     }
 }
