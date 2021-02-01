@@ -1,5 +1,6 @@
 # *f*uzzy *A*WS *sts* *A*ssume*R*ole
 ![test](https://github.com/x4121/fastsar-rs/workflows/test/badge.svg)
+[![crates.io](https://img.shields.io/crates/v/fastsar.svg)](https://crates.io/crates/fastsar)
 [![codecov](https://codecov.io/gh/x4121/fastsar-rs/branch/master/graph/badge.svg?token=VJN89Z04FA)](https://codecov.io/gh/x4121/fastsar-rs)
 
 A small program to switch between
@@ -65,8 +66,11 @@ In this case fastsar will print the command output instead of the environment va
 
 
 ## How to install
-- TODO: release to crates.io
-- TODO: cross-platform build + binaries as releases
+Pre compiled binaries can be downloaded from the [Github releases](https://github.com/x4121/fastsar-rs/releases).
+Unzip the downloaded archive and move the executable to some folder thats in your `$PATH`.
+
+If you want to compile fastsar yourself and have the rust toolchain installed,
+you can run `cargo install fastsar`.
 
 ## Config
 Create a json file with all your accounts and roles in the following format in
