@@ -16,7 +16,7 @@
 on:
   push:
     tags:
-    - '[0-9]+.[0-9]+.[0-9]+'
+    - 'v[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
   create-release:
@@ -74,15 +74,15 @@ jobs:
         include:
         - build: linux-gnu
           os: ubuntu-18.04
-          rust: nightly
+          rust: stable
           target: x86_64-unknown-linux-gnu
         - build: linux-musl
           os: ubuntu-18.04
-          rust: nightly
+          rust: stable
           target: x86_64-unknown-linux-musl
         - build: macos
           os: macos-latest
-          rust: nightly
+          rust: stable
           target: x86_64-apple-darwin
 
     steps:
