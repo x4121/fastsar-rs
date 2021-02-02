@@ -13,6 +13,8 @@
 # This is more or less a copy of
 # https://github.com/BurntSushi/ripgrep/blob/master/.github/workflows/release.yml
 
+name: release
+
 on:
   push:
     tags:
