@@ -12,13 +12,9 @@ license = "MIT"
 readme = "README.md"
 edition = "2018"
 
-[[bin]]
-name = "fastsar"
-bench = false
-
 [dependencies]
 anyhow = "~1.0"
-config = "~0.10"
+config = "0.10.1"
 futures = "~0.3"
 log = "~0.4"
 rusoto_core = "~0.46"
@@ -26,20 +22,28 @@ rusoto_credential = "~0.46"
 rusoto_sts = "~0.46"
 serde_derive = "~1.0"
 serde_json = "~1.0"
-shellexpand = "~2.1"
+shellexpand = "2.1.0"
 simplelog = "~0.9"
 skim = "~0.9"
-structopt = "~0.3"
+structopt = "0.3.21"
 subprocess = "~0.2"
-termcolor = "~1.1"
+termcolor = "1.1.2"
+
+[dependencies.openssl]
+version = "~0.10"
+features = ["vendored"]
 
 [dependencies.serde]
-features = ["derive"]
 version = "~1.0"
+features = ["derive"]
 
 [dependencies.tokio]
-features = ["full"]
 version = "~1.0"
+features = ["full"]
+
+[[bin]]
+name = "fastsar"
+bench = false
 
 [dev-dependencies]
 quickcheck = "~1.0"
@@ -48,5 +52,5 @@ rusoto_mock = "~0.46"
 tokio-test = "~0.4"
 
 [dev-dependencies.rusoto_sts]
-features = ["serialize_structs"]
 version = "~0.46"
+features = ["serialize_structs"]
