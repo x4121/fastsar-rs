@@ -159,7 +159,7 @@ jobs:
           echo "ASSET=$staging.tar.gz" >> $GITHUB_ENV
 
       - name: Upload release archive
-        uses: actions/upload-release-asset@v1.0.1
+        uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
