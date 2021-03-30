@@ -1,5 +1,5 @@
 use log::LevelFilter;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
@@ -70,7 +70,7 @@ impl Arguments {
         }
     }
 
-    fn tilde(path: &PathBuf) -> PathBuf {
+    fn tilde(path: &Path) -> PathBuf {
         PathBuf::from(shellexpand::tilde(path.to_str().unwrap()).to_string())
     }
 }

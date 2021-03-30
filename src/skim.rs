@@ -1,10 +1,9 @@
 extern crate skim;
 use crate::json::{Account, Role};
-use anyhow::Result;
 use skim::prelude::*;
 use std::io::Cursor;
 
-fn get_selection(header: &str, options: &[String]) -> Result<Option<usize>> {
+fn get_selection(header: &str, options: &[String]) -> Option<usize> {
     let skim_options = SkimOptionsBuilder::default()
         .header(Some(&header))
         .build()
@@ -15,10 +14,10 @@ fn get_selection(header: &str, options: &[String]) -> Result<Option<usize>> {
     if let Some(out) = Skim::run_with(&skim_options, Some(items)) {
         if let Event::EvActAccept(_) = out.final_event {
             let item = &out.selected_items[0];
-            return Ok(options.iter().position(|e| e == &item.output()));
+            return options.iter().position(|e| e == &item.output());
         }
     }
-    Ok(None)
+    None
 }
 
 fn get_account_names(accounts: &[Account]) -> Vec<String> {
@@ -37,13 +36,10 @@ fn sort_with_preselect(list: &[String], preselect: &Option<String>) -> Vec<Strin
     list.to_owned()
 }
 
-pub fn select_account(
-    accounts: Vec<Account>,
-    preselect: &Option<String>,
-) -> Result<Option<Account>> {
+pub fn select_account(accounts: Vec<Account>, preselect: &Option<String>) -> Option<Account> {
     let account_names = sort_with_preselect(&get_account_names(&accounts), preselect);
-    get_selection(&String::from("Accounts:"), &account_names)
-        .map(|pos| get_account_from_sorted_names(accounts, account_names, &pos))
+    let pos = get_selection(&String::from("Accounts:"), &account_names);
+    get_account_from_sorted_names(accounts, account_names, &pos)
 }
 
 fn get_account_from_sorted_names(
@@ -61,9 +57,9 @@ fn get_account_from_sorted_names(
     })
 }
 
-pub fn select_role(roles: Vec<Role>, preselect: &Option<String>) -> Result<Option<Role>> {
+pub fn select_role(roles: Vec<Role>, preselect: &Option<String>) -> Option<Role> {
     let mut roles = sort_with_preselect(&roles, preselect);
-    get_selection(&String::from("Roles:"), &roles).map(|o| o.map(|r| roles.remove(r)))
+    get_selection(&String::from("Roles:"), &roles).map(|r| roles.remove(r))
 }
 
 #[cfg(test)]

@@ -118,7 +118,10 @@ fn select_account(arguments: &Arguments, history: &Option<History>) -> Result<Op
         _ => match accounts.len() {
             0 => bail!("Config file is empty."),
             1 => Ok(Some(accounts.remove(0))),
-            _ => skim::select_account(accounts, &history.clone().map(|h| h.account)),
+            _ => Ok(skim::select_account(
+                accounts,
+                &history.clone().map(|h| h.account),
+            )),
         },
     }
 }
@@ -135,7 +138,7 @@ fn select_role(
         _ => match roles.len() {
             0 => bail!("Account {} has no assigned roles.", account.id),
             1 => Ok(Some(roles.remove(0))),
-            _ => skim::select_role(roles, &history.clone().map(|h| h.role)),
+            _ => Ok(skim::select_role(roles, &history.clone().map(|h| h.role))),
         },
     }
 }

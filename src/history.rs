@@ -1,6 +1,6 @@
 use crate::util;
 use anyhow::Result;
-use std::path::PathBuf;
+use std::path::Path;
 
 #[derive(Clone, Debug)]
 pub struct History {
@@ -8,7 +8,7 @@ pub struct History {
     pub role: String,
 }
 
-pub fn read(path: &PathBuf) -> Result<Option<History>> {
+pub fn read(path: &Path) -> Result<Option<History>> {
     let contents = util::read_file(&path).unwrap_or_else(|_| String::from(""));
     let lines: Vec<&str> = contents.split('\n').collect();
     if lines.len() >= 2 {
@@ -21,7 +21,7 @@ pub fn read(path: &PathBuf) -> Result<Option<History>> {
     }
 }
 
-pub fn save(path: &PathBuf, history: &History) -> Result<()> {
+pub fn save(path: &Path, history: &History) -> Result<()> {
     let contents = format!("{}\n{}", history.account, history.role);
     util::write_file(path, &contents)
 }
