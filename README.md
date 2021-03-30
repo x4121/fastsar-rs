@@ -1,5 +1,6 @@
 # *f*uzzy *A*WS *sts* *A*ssume*R*ole
-![test](https://github.com/x4121/fastsar-rs/workflows/test/badge.svg)
+[![audit](https://github.com/x4121/fastsar-rs/actions/workflows/audit.yml/badge.svg)](https://github.com/x4121/fastsar-rs/actions/workflows/audit.yml)
+[![test](https://github.com/x4121/fastsar-rs/actions/workflows/test.yml/badge.svg)](https://github.com/x4121/fastsar-rs/actions/workflows/test.yml)
 [![crates.io](https://img.shields.io/crates/v/fastsar.svg)](https://crates.io/crates/fastsar)
 [![codecov](https://codecov.io/gh/x4121/fastsar-rs/branch/master/graph/badge.svg?token=VJN89Z04FA)](https://codecov.io/gh/x4121/fastsar-rs)
 
