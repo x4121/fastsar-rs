@@ -11,12 +11,12 @@ use crate::shell::Shell;
 use anyhow::Result;
 use history::History;
 use rusoto_sts::Credentials;
-use simplelog::{Config, TermLogger, TerminalMode};
+use simplelog::{Config, TermLogger};
 use std::io::Write;
 use std::process;
 use structopt::StructOpt;
 use subprocess::Exec;
-use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
+use termcolor::{ColorSpec, StandardStream, WriteColor};
 
 mod arguments;
 mod aws;
@@ -33,7 +33,8 @@ async fn main() {
     let _ = TermLogger::init(
         arguments.get_log_level(),
         Config::default(),
-        TerminalMode::Stderr,
+        simplelog::TerminalMode::Stderr,
+        simplelog::ColorChoice::Auto,
     );
 
     debug!("{:#?}", arguments);
@@ -192,8 +193,8 @@ fn print_credentials(shell: &Shell, credentials: &Credentials) -> Result<()> {
         }
     }
 
-    let mut stderr = StandardStream::stderr(ColorChoice::Always);
-    stderr.set_color(ColorSpec::new().set_fg(Some(Color::Green)))?;
+    let mut stderr = StandardStream::stderr(termcolor::ColorChoice::Always);
+    stderr.set_color(ColorSpec::new().set_fg(Some(termcolor::Color::Green)))?;
     writeln!(
         &mut stderr,
         "Session valid until {}.",
