@@ -51,25 +51,32 @@ async fn main() {
     };
     debug!("Region: {:?}", &region);
 
-    let account = match select_account(&arguments, &history) {
-        Ok(Some(account)) => account,
-        Ok(None) => process::exit(0),
-        Err(err) => {
-            error!("{}", err);
-            process::exit(1);
+    let (account_id, role) = match (&arguments.account, &arguments.role) {
+        (Some(account_id), Some(role)) => (account_id.to_string(), role.to_string()),
+        _ => {
+            let account = match select_account(&arguments, &history) {
+                Ok(Some(account)) => account,
+                Ok(None) => process::exit(0),
+                Err(err) => {
+                    error!("{}", err);
+                    process::exit(1);
+                }
+            };
+            debug!("Account: {:?}", &account.id);
+            let role = match select_role(&account, &arguments, &history) {
+                Ok(Some(role)) => role,
+                Ok(None) => process::exit(0),
+                Err(err) => {
+                    error!("{}", err);
+                    process::exit(1);
+                }
+            };
+            debug!("Role: {:?}", &role);
+            (account.id, role)
         }
     };
-    debug!("Account: {:?}", &account.id);
-    let role = match select_role(&account, &arguments, &history) {
-        Ok(Some(role)) => role,
-        Ok(None) => process::exit(0),
-        Err(err) => {
-            error!("{}", err);
-            process::exit(1);
-        }
-    };
-    debug!("Role: {:?}", &role);
-    let credentials = match aws::assume_role(&account.id, &role, region, &arguments).await {
+
+    let credentials = match aws::assume_role(&account_id, &role, region, &arguments).await {
         Ok(credentials) => credentials,
         Err(err) => {
             error!("{}", err);
@@ -84,10 +91,7 @@ async fn main() {
     if status.is_err() {
         process::exit(1);
     }
-    let history = History {
-        account_id: account.id,
-        role,
-    };
+    let history = History { account_id, role };
     if let Err(err) = history::write(&arguments.get_history_path(), &history) {
         error!("{}", err);
         process::exit(1);
