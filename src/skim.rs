@@ -27,7 +27,7 @@ fn get_account_names(accounts: &[Account]) -> Vec<String> {
 fn sort_with_preselect<T: Clone>(
     list: &[T],
     preselect: &Option<String>,
-    finder: &dyn Fn(&[T], &String) -> Option<usize>,
+    finder: &dyn Fn(&[T], &str) -> Option<usize>,
 ) -> Vec<T> {
     if let Some(element) = preselect {
         if let Some(pos) = finder(list, element) {
@@ -41,8 +41,8 @@ fn sort_with_preselect<T: Clone>(
 }
 
 pub fn select_account(accounts: Vec<Account>, preselect: &Option<String>) -> Option<Account> {
-    fn finder(list: &[Account], p: &String) -> Option<usize> {
-        list.iter().position(|a| &a.id == p)
+    fn finder(list: &[Account], p: &str) -> Option<usize> {
+        list.iter().position(|a| a.id == p)
     }
     let accounts = sort_with_preselect(&accounts, preselect, &finder);
     let account_names = get_account_names(&accounts);
@@ -66,7 +66,7 @@ fn get_account_from_sorted_names(
 }
 
 pub fn select_role(roles: Vec<Role>, preselect: &Option<String>) -> Option<Role> {
-    fn finder(list: &[String], p: &String) -> Option<usize> {
+    fn finder(list: &[String], p: &str) -> Option<usize> {
         list.iter().position(|a| a == p)
     }
     let mut roles = sort_with_preselect(&roles, preselect, &finder);
@@ -103,7 +103,7 @@ mod tests {
 
     #[test]
     fn sort_list() {
-        fn finder(list: &[String], p: &String) -> Option<usize> {
+        fn finder(list: &[String], p: &str) -> Option<usize> {
             list.iter().position(|a| a == p)
         }
 
@@ -157,8 +157,8 @@ mod tests {
             Some(accounts[1].clone())
         );
 
-        fn finder(list: &[Account], p: &String) -> Option<usize> {
-            list.iter().position(|a| &a.id == p)
+        fn finder(list: &[Account], p: &str) -> Option<usize> {
+            list.iter().position(|a| a.id == p)
         }
         let sorted = sort_with_preselect(&accounts, &Some(String::from("2")), &finder);
         let account_names = get_account_names(&sorted);
