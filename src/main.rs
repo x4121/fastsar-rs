@@ -6,7 +6,7 @@ extern crate log;
 #[macro_use]
 extern crate anyhow;
 use crate::arguments::Arguments;
-use crate::json::{Account, Role};
+use crate::config::{Account, Role};
 use crate::shell::Shell;
 use anyhow::Result;
 use history::History;
@@ -20,8 +20,8 @@ use termcolor::{ColorSpec, StandardStream, WriteColor};
 
 mod arguments;
 mod aws;
+mod config;
 mod history;
-mod json;
 mod shell;
 mod skim;
 mod util;
@@ -40,13 +40,7 @@ async fn main() {
     debug!("{:#?}", arguments);
     let shell = shell::get_shell(&arguments.shell);
     debug!("Shell: {:?}", &shell);
-    let history = match history::read(&arguments.get_history_path()) {
-        Ok(history) => history,
-        Err(err) => {
-            error!("{}", err);
-            process::exit(1);
-        }
-    };
+    let history = history::read(&arguments.get_history_path());
     debug!("History: {:?}", &history);
     let region = match aws::get_region(&arguments.region) {
         Ok(region) => region,
@@ -91,17 +85,17 @@ async fn main() {
         process::exit(1);
     }
     let history = History {
-        account: account.name,
+        account_id: account.id,
         role,
     };
-    if let Err(err) = history::save(&arguments.get_history_path(), &history) {
+    if let Err(err) = history::write(&arguments.get_history_path(), &history) {
         error!("{}", err);
         process::exit(1);
     }
 }
 
 fn select_account(arguments: &Arguments, history: &Option<History>) -> Result<Option<Account>> {
-    let mut accounts = json::read_config(&arguments.get_config_path())?;
+    let mut accounts = config::read(&arguments.get_config_path())?;
     match &arguments.account {
         Some(account_id) => {
             let account = accounts
@@ -121,7 +115,7 @@ fn select_account(arguments: &Arguments, history: &Option<History>) -> Result<Op
             1 => Ok(Some(accounts.remove(0))),
             _ => Ok(skim::select_account(
                 accounts,
-                &history.clone().map(|h| h.account),
+                &history.clone().map(|h| h.account_id),
             )),
         },
     }

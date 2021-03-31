@@ -1,12 +1,12 @@
 extern crate serde_json;
 use crate::util;
 use anyhow::Result;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::path::Path;
 
 pub type Role = String;
 
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct Account {
     pub name: String,
     pub id: String,
@@ -18,7 +18,7 @@ fn parse_json(contents: &str) -> Result<Vec<Account>> {
     Ok(acc)
 }
 
-pub fn read_config(path: &Path) -> Result<Vec<Account>> {
+pub fn read(path: &Path) -> Result<Vec<Account>> {
     let contents = util::read_file(&path)?;
     let res = parse_json(&contents)?;
     Ok(res)

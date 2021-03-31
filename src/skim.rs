@@ -1,5 +1,5 @@
 extern crate skim;
-use crate::json::{Account, Role};
+use crate::config::{Account, Role};
 use skim::prelude::*;
 use std::io::Cursor;
 
@@ -24,12 +24,16 @@ fn get_account_names(accounts: &[Account]) -> Vec<String> {
     accounts.iter().map(|e| e.name.clone()).collect()
 }
 
-fn sort_with_preselect(list: &[String], preselect: &Option<String>) -> Vec<String> {
+fn sort_with_preselect<T: Clone>(
+    list: &[T],
+    preselect: &Option<String>,
+    finder: &dyn Fn(&[T], &String) -> Option<usize>,
+) -> Vec<T> {
     if let Some(element) = preselect {
-        if let Some(pos) = list.iter().position(|e| e == element) {
+        if let Some(pos) = finder(list, element) {
             let mut list = list.to_vec();
-            list.remove(pos);
-            list.insert(0, element.to_string());
+            let x = list.remove(pos);
+            list.insert(0, x);
             return list;
         }
     }
@@ -37,7 +41,11 @@ fn sort_with_preselect(list: &[String], preselect: &Option<String>) -> Vec<Strin
 }
 
 pub fn select_account(accounts: Vec<Account>, preselect: &Option<String>) -> Option<Account> {
-    let account_names = sort_with_preselect(&get_account_names(&accounts), preselect);
+    fn finder(list: &[Account], p: &String) -> Option<usize> {
+        list.iter().position(|a| &a.id == p)
+    }
+    let accounts = sort_with_preselect(&accounts, preselect, &finder);
+    let account_names = get_account_names(&accounts);
     let pos = get_selection(&String::from("Accounts:"), &account_names);
     get_account_from_sorted_names(accounts, account_names, &pos)
 }
@@ -58,7 +66,10 @@ fn get_account_from_sorted_names(
 }
 
 pub fn select_role(roles: Vec<Role>, preselect: &Option<String>) -> Option<Role> {
-    let mut roles = sort_with_preselect(&roles, preselect);
+    fn finder(list: &[String], p: &String) -> Option<usize> {
+        list.iter().position(|a| a == p)
+    }
+    let mut roles = sort_with_preselect(&roles, preselect, &finder);
     get_selection(&String::from("Roles:"), &roles).map(|r| roles.remove(r))
 }
 
@@ -92,14 +103,18 @@ mod tests {
 
     #[test]
     fn sort_list() {
+        fn finder(list: &[String], p: &String) -> Option<usize> {
+            list.iter().position(|a| a == p)
+        }
+
         let list = vec![
             String::from("foo"),
             String::from("bar"),
             String::from("baz"),
         ];
-        assert_eq!(sort_with_preselect(&list, &None), list);
+        assert_eq!(sort_with_preselect(&list, &None, &finder), list);
         assert_eq!(
-            sort_with_preselect(&list, &Some(String::from("nope"))),
+            sort_with_preselect(&list, &Some(String::from("nope")), &finder),
             list
         );
 
@@ -109,7 +124,7 @@ mod tests {
             String::from("bar"),
         ];
         assert_eq!(
-            sort_with_preselect(&list, &Some(String::from("baz"))),
+            sort_with_preselect(&list, &Some(String::from("baz")), &finder),
             sorted_list
         );
     }
@@ -142,7 +157,11 @@ mod tests {
             Some(accounts[1].clone())
         );
 
-        let account_names = sort_with_preselect(&account_names, &Some(String::from("bar")));
+        fn finder(list: &[Account], p: &String) -> Option<usize> {
+            list.iter().position(|a| &a.id == p)
+        }
+        let sorted = sort_with_preselect(&accounts, &Some(String::from("2")), &finder);
+        let account_names = get_account_names(&sorted);
         assert_eq!(
             get_account_from_sorted_names(accounts.clone(), account_names.clone(), &Some(0)),
             Some(accounts[1].clone())
