@@ -89,10 +89,7 @@ mod tests {
         assert!(get_region(&Some(String::from("foobar"))).is_err());
     }
 
-    // I think this test should pass, but it doesn't
-    // see: https://github.com/rusoto/rusoto/issues/1895
     #[tokio::test]
-    #[ignore]
     async fn mock_sts_call() {
         let account = String::from("123456789123");
         let role = String::from("user");
@@ -102,12 +99,37 @@ mod tests {
             session_token: String::from("00000000000000"),
             ..Credentials::default()
         };
-        let response = AssumeRoleResponse {
-            credentials: Some(credentials.clone()),
-            ..AssumeRoleResponse::default()
-        };
+        let response = format!(
+            r#"
+        <AssumeRoleResponse xmlns="https://sts.amazonaws.com/doc/2011-06-15/">
+          <AssumeRoleResult>
+            <SourceIdentity>Alice</SourceIdentity>
+            <AssumedRoleUser>
+              <Arn>arn:aws:sts::{}:assumed-role/{}</Arn>
+              <AssumedRoleId>ARO123123123123:{}</AssumedRoleId>
+            </AssumedRoleUser>
+            <Credentials>
+              <AccessKeyId>{}</AccessKeyId>
+              <SecretAccessKey>{}</SecretAccessKey>
+              <SessionToken>{}</SessionToken>
+              <Expiration></Expiration>
+            </Credentials>
+            <PackedPolicySize>6</PackedPolicySize>
+          </AssumeRoleResult>
+          <ResponseMetadata>
+            <RequestId>1</RequestId>
+          </ResponseMetadata>
+        </AssumeRoleResponse>
+        "#,
+            account,
+            role,
+            role,
+            credentials.access_key_id,
+            credentials.secret_access_key,
+            credentials.session_token
+        );
         let client = StsClient::new_with(
-            MockRequestDispatcher::default().with_json_body(response),
+            MockRequestDispatcher::default().with_body(&response),
             MockCredentialsProvider,
             Default::default(),
         );
