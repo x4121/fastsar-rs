@@ -5,8 +5,6 @@ use rusoto_core::Region;
 use rusoto_credential::ProfileProvider;
 #[cfg(test)]
 use rusoto_mock::*;
-#[cfg(test)]
-use rusoto_sts::AssumeRoleResponse;
 use rusoto_sts::{AssumeRoleRequest, Credentials, Sts, StsClient};
 use std::str::FromStr;
 
