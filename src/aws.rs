@@ -14,7 +14,7 @@ pub const ACCESS_KEY_ID: &str = "AWS_ACCESS_KEY_ID";
 pub const SECRET_ACCESS_KEY: &str = "AWS_SECRET_ACCESS_KEY";
 pub const SESSION_TOKEN: &str = "AWS_SESSION_TOKEN";
 
-const SESSION_NAME: &str = "skastsar_temp_session";
+const SESSION_NAME: &str = "fastsar_temp_session";
 
 async fn assume_role_exec(
     account: &str,

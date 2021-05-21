@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "skastsar", about = "skim AWS sts AssumeRole")]
+#[structopt(name = "fastsar", about = "fuzzy AWS sts AssumeRole")]
 pub struct Arguments {
     #[structopt(
         short = "c",
