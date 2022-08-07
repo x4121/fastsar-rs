@@ -19,7 +19,7 @@ impl Default for Shell {
 }
 
 impl FromStr for Shell {
-    type Err = ();
+    type Err = std::convert::Infallible;
 
     fn from_str(shell: &str) -> Result<Self, Self::Err> {
         if shell == "fish" {
