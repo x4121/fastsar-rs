@@ -102,15 +102,9 @@ fn select_account(arguments: &Arguments, history: &Option<History>) -> Result<Op
     let mut accounts = config::read(&arguments.get_config_path())?;
     match &arguments.account {
         Some(account_id) => {
-            let account = accounts
-                .iter()
-                .filter(|&a| &a.id == account_id)
-                .cloned()
-                .collect::<Vec<Account>>()
-                .first()
-                .cloned();
+            let account = accounts.iter().find(|a| &a.id == account_id);
             match account {
-                Some(account) => Ok(Some(account)),
+                Some(account) => Ok(Some(account.clone())),
                 None => bail!("Account {} not found in config.", account_id),
             }
         }
