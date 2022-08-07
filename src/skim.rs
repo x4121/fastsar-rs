@@ -26,7 +26,7 @@ fn get_account_names(accounts: &[Account]) -> Vec<String> {
 
 fn sort_with_preselect<T: Clone>(
     list: &[T],
-    preselect: &Option<String>,
+    preselect: Option<&str>,
     finder: &dyn Fn(&[T], &str) -> Option<usize>,
 ) -> Vec<T> {
     if let Some(element) = preselect {
@@ -40,7 +40,7 @@ fn sort_with_preselect<T: Clone>(
     list.to_owned()
 }
 
-pub fn select_account(accounts: Vec<Account>, preselect: &Option<String>) -> Option<Account> {
+pub fn select_account(accounts: Vec<Account>, preselect: Option<&str>) -> Option<Account> {
     fn finder(list: &[Account], p: &str) -> Option<usize> {
         list.iter().position(|a| a.id == p)
     }
@@ -65,7 +65,7 @@ fn get_account_from_sorted_names(
     })
 }
 
-pub fn select_role(roles: Vec<Role>, preselect: &Option<String>) -> Option<Role> {
+pub fn select_role(roles: Vec<Role>, preselect: Option<&str>) -> Option<Role> {
     fn finder(list: &[String], p: &str) -> Option<usize> {
         list.iter().position(|a| a == p)
     }
@@ -112,11 +112,8 @@ mod tests {
             String::from("bar"),
             String::from("baz"),
         ];
-        assert_eq!(sort_with_preselect(&list, &None, &finder), list);
-        assert_eq!(
-            sort_with_preselect(&list, &Some(String::from("nope")), &finder),
-            list
-        );
+        assert_eq!(sort_with_preselect(&list, None, &finder), list);
+        assert_eq!(sort_with_preselect(&list, Some("nope"), &finder), list);
 
         let sorted_list = vec![
             String::from("baz"),
@@ -124,7 +121,7 @@ mod tests {
             String::from("bar"),
         ];
         assert_eq!(
-            sort_with_preselect(&list, &Some(String::from("baz")), &finder),
+            sort_with_preselect(&list, Some("baz"), &finder),
             sorted_list
         );
     }
@@ -160,7 +157,7 @@ mod tests {
         fn finder(list: &[Account], p: &str) -> Option<usize> {
             list.iter().position(|a| a.id == p)
         }
-        let sorted = sort_with_preselect(&accounts, &Some(String::from("2")), &finder);
+        let sorted = sort_with_preselect(&accounts, Some("2"), &finder);
         let account_names = get_account_names(&sorted);
         assert_eq!(
             get_account_from_sorted_names(accounts.clone(), account_names.clone(), &Some(0)),
