@@ -42,7 +42,7 @@ async fn main() {
     debug!("Shell: {:?}", &shell);
     let history = history::read(&arguments.get_history_path());
     debug!("History: {:?}", &history);
-    let region = match aws::get_region(&arguments.region) {
+    let region = match aws::get_region(arguments.region.as_deref()) {
         Ok(region) => region,
         Err(err) => {
             error!("{}", err);
