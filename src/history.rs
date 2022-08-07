@@ -16,7 +16,7 @@ fn parse_json(contents: &str) -> Option<History> {
 
 pub fn read(path: &Path) -> Option<History> {
     let contents = util::read_file(path).ok();
-    contents.map(|c| parse_json(&c)).flatten()
+    contents.and_then(|c| parse_json(&c))
 }
 
 pub fn write(path: &Path, history: &History) -> Result<()> {
