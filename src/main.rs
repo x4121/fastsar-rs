@@ -85,7 +85,7 @@ async fn main() {
     };
 
     let status = match &arguments.exec {
-        Some(exec) => set_credentials_and_exec(&credentials, &exec),
+        Some(exec) => set_credentials_and_exec(&credentials, exec),
         None => print_credentials(&shell, &credentials),
     };
     if status.is_err() {
@@ -165,7 +165,7 @@ fn set_credentials(credentials: &Credentials) -> Result<()> {
 }
 
 fn print_credentials(shell: &Shell, credentials: &Credentials) -> Result<()> {
-    match shell::export_string(&shell, aws::ACCESS_KEY_ID, &credentials.access_key_id) {
+    match shell::export_string(shell, aws::ACCESS_KEY_ID, &credentials.access_key_id) {
         Ok(set_env) => println!("{}", set_env),
         Err(err) => {
             error!("Could not set env '{}': {}", aws::ACCESS_KEY_ID, err);
@@ -173,7 +173,7 @@ fn print_credentials(shell: &Shell, credentials: &Credentials) -> Result<()> {
         }
     }
     match shell::export_string(
-        &shell,
+        shell,
         aws::SECRET_ACCESS_KEY,
         &credentials.secret_access_key,
     ) {
@@ -183,7 +183,7 @@ fn print_credentials(shell: &Shell, credentials: &Credentials) -> Result<()> {
             return Err(err);
         }
     }
-    match shell::export_string(&shell, aws::SESSION_TOKEN, &credentials.session_token) {
+    match shell::export_string(shell, aws::SESSION_TOKEN, &credentials.session_token) {
         Ok(set_env) => println!("{}", set_env),
         Err(err) => {
             error!("Could not set env '{}': {}", aws::SESSION_TOKEN, err);

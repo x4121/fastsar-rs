@@ -5,7 +5,7 @@ use std::io::Cursor;
 
 fn get_selection(header: &str, options: &[String]) -> Option<usize> {
     let skim_options = SkimOptionsBuilder::default()
-        .header(Some(&header))
+        .header(Some(header))
         .build()
         .unwrap();
 
