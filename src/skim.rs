@@ -11,13 +11,12 @@ fn get_selection(header: &str, options: &[String]) -> Option<usize> {
 
     let items = SkimItemReader::default().of_bufread(Cursor::new(options.join("\n")));
 
-    if let Some(out) = Skim::run_with(&skim_options, Some(items)) {
-        if let Event::EvActAccept(_) = out.final_event {
+    Skim::run_with(&skim_options, items.into())
+        .filter(|out| matches!(out.final_event, Event::EvActAccept(_)))
+        .and_then(|out| {
             let item = &out.selected_items[0];
-            return options.iter().position(|e| e == &item.output());
-        }
-    }
-    None
+            options.iter().position(|e| e == &item.output())
+        })
 }
 
 fn get_account_names(accounts: &[Account]) -> Vec<String> {
