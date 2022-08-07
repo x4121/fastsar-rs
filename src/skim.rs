@@ -29,15 +29,14 @@ fn sort_with_preselect<T: Clone>(
     preselect: Option<&str>,
     finder: &dyn Fn(&[T], &str) -> Option<usize>,
 ) -> Vec<T> {
-    if let Some(element) = preselect {
-        if let Some(pos) = finder(list, element) {
-            let mut list = list.to_vec();
-            let x = list.remove(pos);
-            list.insert(0, x);
-            return list;
-        }
+    if let Some(pos) = preselect.and_then(|el| finder(list, el)) {
+        let mut list = list.to_vec();
+        let x = list.remove(pos);
+        list.insert(0, x);
+        list
+    } else {
+        list.to_owned()
     }
-    list.to_owned()
 }
 
 pub fn select_account(accounts: Vec<Account>, preselect: Option<&str>) -> Option<Account> {
