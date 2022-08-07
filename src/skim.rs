@@ -45,7 +45,7 @@ pub fn select_account(accounts: Vec<Account>, preselect: Option<&str>) -> Option
     }
     let accounts = sort_with_preselect(&accounts, preselect, &finder);
     let account_names = get_account_names(&accounts);
-    let pos = get_selection(&String::from("Accounts:"), &account_names);
+    let pos = get_selection("Accounts:", &account_names);
     get_account_from_sorted_names(accounts, account_names, &pos)
 }
 
@@ -69,7 +69,7 @@ pub fn select_role(roles: Vec<Role>, preselect: Option<&str>) -> Option<Role> {
         list.iter().position(|a| a == p)
     }
     let mut roles = sort_with_preselect(&roles, preselect, &finder);
-    get_selection(&String::from("Roles:"), &roles).map(|r| roles.remove(r))
+    get_selection("Roles:", &roles).map(|r| roles.remove(r))
 }
 
 #[cfg(test)]
