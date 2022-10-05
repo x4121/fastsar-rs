@@ -11,12 +11,11 @@ pub struct History {
 }
 
 fn parse_json(contents: &str) -> Option<History> {
-    serde_json::from_str(&contents).ok()
+    serde_json::from_str(contents).ok()
 }
 
 pub fn read(path: &Path) -> Option<History> {
-    let contents = util::read_file(&path).ok();
-    contents.map(|c| parse_json(&c)).flatten()
+    util::read_file(path).ok().as_deref().and_then(parse_json)
 }
 
 pub fn write(path: &Path, history: &History) -> Result<()> {

@@ -55,7 +55,7 @@ pub async fn assume_role(
     assume_role_exec(account, role, mfa_id, mfa_token, &client).await
 }
 
-pub fn get_region(preselect: &Option<String>) -> Result<Region> {
+pub fn get_region(preselect: Option<&str>) -> Result<Region> {
     if let Some(region) = preselect {
         let region = Region::from_str(region)?;
         Ok(region)
@@ -70,21 +70,15 @@ mod tests {
 
     #[test]
     fn region_from_string() {
-        assert_eq!(
-            get_region(&Some(String::from("EuCentral1"))).unwrap(),
-            Region::EuCentral1
-        );
-        assert_eq!(
-            get_region(&Some(String::from("UsEast1"))).unwrap(),
-            Region::UsEast1
-        );
-        assert_eq!(get_region(&None).unwrap(), Region::default());
+        assert_eq!(get_region(Some("EuCentral1")).unwrap(), Region::EuCentral1);
+        assert_eq!(get_region(Some("UsEast1")).unwrap(), Region::UsEast1);
+        assert_eq!(get_region(None).unwrap(), Region::default());
     }
 
     #[test]
     fn region_error_fallback() {
-        assert!(get_region(&Some(String::from(""))).is_err());
-        assert!(get_region(&Some(String::from("foobar"))).is_err());
+        assert!(get_region(Some("")).is_err());
+        assert!(get_region(Some("foobar")).is_err());
     }
 
     #[tokio::test]

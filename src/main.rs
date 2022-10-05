@@ -42,7 +42,7 @@ async fn main() {
     debug!("Shell: {:?}", &shell);
     let history = history::read(&arguments.get_history_path());
     debug!("History: {:?}", &history);
-    let region = match aws::get_region(&arguments.region) {
+    let region = match aws::get_region(arguments.region.as_deref()) {
         Ok(region) => region,
         Err(err) => {
             error!("{}", err);
@@ -54,7 +54,7 @@ async fn main() {
     let (account_id, role) = match (&arguments.account, &arguments.role) {
         (Some(account_id), Some(role)) => (account_id.to_string(), role.to_string()),
         _ => {
-            let account = match select_account(&arguments, &history) {
+            let account = match select_account(&arguments, history.as_ref()) {
                 Ok(Some(account)) => account,
                 Ok(None) => process::exit(0),
                 Err(err) => {
@@ -63,7 +63,7 @@ async fn main() {
                 }
             };
             debug!("Account: {:?}", &account.id);
-            let role = match select_role(&account, &arguments, &history) {
+            let role = match select_role(&account, &arguments, history.as_ref()) {
                 Ok(Some(role)) => role,
                 Ok(None) => process::exit(0),
                 Err(err) => {
@@ -85,7 +85,7 @@ async fn main() {
     };
 
     let status = match &arguments.exec {
-        Some(exec) => set_credentials_and_exec(&credentials, &exec),
+        Some(exec) => set_credentials_and_exec(&credentials, exec),
         None => print_credentials(&shell, &credentials),
     };
     if status.is_err() {
@@ -98,19 +98,13 @@ async fn main() {
     }
 }
 
-fn select_account(arguments: &Arguments, history: &Option<History>) -> Result<Option<Account>> {
+fn select_account(arguments: &Arguments, history: Option<&History>) -> Result<Option<Account>> {
     let mut accounts = config::read(&arguments.get_config_path())?;
     match &arguments.account {
         Some(account_id) => {
-            let account = accounts
-                .iter()
-                .filter(|&a| &a.id == account_id)
-                .cloned()
-                .collect::<Vec<Account>>()
-                .first()
-                .cloned();
+            let account = accounts.iter().find(|a| &a.id == account_id);
             match account {
-                Some(account) => Ok(Some(account)),
+                Some(account) => Ok(Some(account.clone())),
                 None => bail!("Account {} not found in config.", account_id),
             }
         }
@@ -119,7 +113,7 @@ fn select_account(arguments: &Arguments, history: &Option<History>) -> Result<Op
             1 => Ok(Some(accounts.remove(0))),
             _ => Ok(skim::select_account(
                 accounts,
-                &history.clone().map(|h| h.account_id),
+                history.map(|h| h.account_id.as_str()),
             )),
         },
     }
@@ -128,7 +122,7 @@ fn select_account(arguments: &Arguments, history: &Option<History>) -> Result<Op
 fn select_role(
     account: &Account,
     arguments: &Arguments,
-    history: &Option<History>,
+    history: Option<&History>,
 ) -> Result<Option<Role>> {
     let mut roles = account.clone().roles;
     match &arguments.role {
@@ -137,7 +131,7 @@ fn select_role(
         _ => match roles.len() {
             0 => bail!("Account {} has no assigned roles.", account.id),
             1 => Ok(Some(roles.remove(0))),
-            _ => Ok(skim::select_role(roles, &history.clone().map(|h| h.role))),
+            _ => Ok(skim::select_role(roles, history.map(|h| h.role.as_str()))),
         },
     }
 }
@@ -165,7 +159,7 @@ fn set_credentials(credentials: &Credentials) -> Result<()> {
 }
 
 fn print_credentials(shell: &Shell, credentials: &Credentials) -> Result<()> {
-    match shell::export_string(&shell, aws::ACCESS_KEY_ID, &credentials.access_key_id) {
+    match shell::export_string(shell, aws::ACCESS_KEY_ID, &credentials.access_key_id) {
         Ok(set_env) => println!("{}", set_env),
         Err(err) => {
             error!("Could not set env '{}': {}", aws::ACCESS_KEY_ID, err);
@@ -173,7 +167,7 @@ fn print_credentials(shell: &Shell, credentials: &Credentials) -> Result<()> {
         }
     }
     match shell::export_string(
-        &shell,
+        shell,
         aws::SECRET_ACCESS_KEY,
         &credentials.secret_access_key,
     ) {
@@ -183,7 +177,7 @@ fn print_credentials(shell: &Shell, credentials: &Credentials) -> Result<()> {
             return Err(err);
         }
     }
-    match shell::export_string(&shell, aws::SESSION_TOKEN, &credentials.session_token) {
+    match shell::export_string(shell, aws::SESSION_TOKEN, &credentials.session_token) {
         Ok(set_env) => println!("{}", set_env),
         Err(err) => {
             error!("Could not set env '{}': {}", aws::SESSION_TOKEN, err);

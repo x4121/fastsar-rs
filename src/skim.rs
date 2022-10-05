@@ -5,19 +5,18 @@ use std::io::Cursor;
 
 fn get_selection(header: &str, options: &[String]) -> Option<usize> {
     let skim_options = SkimOptionsBuilder::default()
-        .header(Some(&header))
+        .header(Some(header))
         .build()
         .unwrap();
 
     let items = SkimItemReader::default().of_bufread(Cursor::new(options.join("\n")));
 
-    if let Some(out) = Skim::run_with(&skim_options, Some(items)) {
-        if let Event::EvActAccept(_) = out.final_event {
+    Skim::run_with(&skim_options, items.into())
+        .filter(|out| matches!(out.final_event, Event::EvActAccept(_)))
+        .and_then(|out| {
             let item = &out.selected_items[0];
-            return options.iter().position(|e| e == &item.output());
-        }
-    }
-    None
+            options.iter().position(|e| e == &item.output())
+        })
 }
 
 fn get_account_names(accounts: &[Account]) -> Vec<String> {
@@ -26,27 +25,26 @@ fn get_account_names(accounts: &[Account]) -> Vec<String> {
 
 fn sort_with_preselect<T: Clone>(
     list: &[T],
-    preselect: &Option<String>,
+    preselect: Option<&str>,
     finder: &dyn Fn(&[T], &str) -> Option<usize>,
 ) -> Vec<T> {
-    if let Some(element) = preselect {
-        if let Some(pos) = finder(list, element) {
-            let mut list = list.to_vec();
-            let x = list.remove(pos);
-            list.insert(0, x);
-            return list;
-        }
+    if let Some(pos) = preselect.and_then(|el| finder(list, el)) {
+        let mut list = list.to_vec();
+        let x = list.remove(pos);
+        list.insert(0, x);
+        list
+    } else {
+        list.to_owned()
     }
-    list.to_owned()
 }
 
-pub fn select_account(accounts: Vec<Account>, preselect: &Option<String>) -> Option<Account> {
+pub fn select_account(accounts: Vec<Account>, preselect: Option<&str>) -> Option<Account> {
     fn finder(list: &[Account], p: &str) -> Option<usize> {
         list.iter().position(|a| a.id == p)
     }
     let accounts = sort_with_preselect(&accounts, preselect, &finder);
     let account_names = get_account_names(&accounts);
-    let pos = get_selection(&String::from("Accounts:"), &account_names);
+    let pos = get_selection("Accounts:", &account_names);
     get_account_from_sorted_names(accounts, account_names, &pos)
 }
 
@@ -65,12 +63,12 @@ fn get_account_from_sorted_names(
     })
 }
 
-pub fn select_role(roles: Vec<Role>, preselect: &Option<String>) -> Option<Role> {
+pub fn select_role(roles: Vec<Role>, preselect: Option<&str>) -> Option<Role> {
     fn finder(list: &[String], p: &str) -> Option<usize> {
         list.iter().position(|a| a == p)
     }
     let mut roles = sort_with_preselect(&roles, preselect, &finder);
-    get_selection(&String::from("Roles:"), &roles).map(|r| roles.remove(r))
+    get_selection("Roles:", &roles).map(|r| roles.remove(r))
 }
 
 #[cfg(test)]
@@ -112,11 +110,8 @@ mod tests {
             String::from("bar"),
             String::from("baz"),
         ];
-        assert_eq!(sort_with_preselect(&list, &None, &finder), list);
-        assert_eq!(
-            sort_with_preselect(&list, &Some(String::from("nope")), &finder),
-            list
-        );
+        assert_eq!(sort_with_preselect(&list, None, &finder), list);
+        assert_eq!(sort_with_preselect(&list, Some("nope"), &finder), list);
 
         let sorted_list = vec![
             String::from("baz"),
@@ -124,7 +119,7 @@ mod tests {
             String::from("bar"),
         ];
         assert_eq!(
-            sort_with_preselect(&list, &Some(String::from("baz")), &finder),
+            sort_with_preselect(&list, Some("baz"), &finder),
             sorted_list
         );
     }
@@ -160,7 +155,7 @@ mod tests {
         fn finder(list: &[Account], p: &str) -> Option<usize> {
             list.iter().position(|a| a.id == p)
         }
-        let sorted = sort_with_preselect(&accounts, &Some(String::from("2")), &finder);
+        let sorted = sort_with_preselect(&accounts, Some("2"), &finder);
         let account_names = get_account_names(&sorted);
         assert_eq!(
             get_account_from_sorted_names(accounts.clone(), account_names.clone(), &Some(0)),

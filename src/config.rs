@@ -14,12 +14,12 @@ pub struct Account {
 }
 
 fn parse_json(contents: &str) -> Result<Vec<Account>> {
-    let acc: Vec<Account> = serde_json::from_str(&contents)?;
+    let acc: Vec<Account> = serde_json::from_str(contents)?;
     Ok(acc)
 }
 
 pub fn read(path: &Path) -> Result<Vec<Account>> {
-    let contents = util::read_file(&path)?;
+    let contents = util::read_file(path)?;
     let res = parse_json(&contents)?;
     Ok(res)
 }
