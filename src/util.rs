@@ -15,3 +15,32 @@ pub fn write_file(path: &Path, contents: &str) -> Result<()> {
     file.write_all(contents.as_bytes())?;
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn read_files() {
+        assert_eq!(
+            read_file(&PathBuf::from("tests/data/empty.txt")).unwrap(),
+            String::from("")
+        );
+        assert_eq!(
+            read_file(&PathBuf::from("tests/data/lines.txt")).unwrap(),
+            String::from("foo\nbar baz\n")
+        );
+    }
+
+    #[test]
+    fn write_files() {
+        assert_eq!(
+            write_file(&PathBuf::from("tests/data/empty.txt")),
+            String::from("")
+        );
+        assert_eq!(
+            write_file(&PathBuf::from("tests/data/lines.txt")),
+            String::from("foo\nbar baz\n")
+        );
+    }
+}
